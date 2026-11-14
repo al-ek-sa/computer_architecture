@@ -1,0 +1,108 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+
+WORD_SIZE = 4
+WORD_BITS = 32
+WORD_MASK = 0xFFFF_FFFF
+
+ADDRESS_BITS = 32
+ADDRESS_SPACE_SIZE = 1 << ADDRESS_BITS
+ADDRESS_MASK = ADDRESS_SPACE_SIZE - 1
+
+IMEM_SIZE = 1 << 16
+
+RESET_VECTOR = 0x0000
+INPUT_VECTOR = 0x0004
+RESERVED_VECTOR = 0x0008
+TEXT_START = 0x000C
+
+DMEM_SIZE = 1 << 32
+
+MMIO_START = 0x0000_0000
+INPUT_DATA = 0x0000_0000
+OUTPUT_DATA = 0x0000_0004
+CYCLE_COUNTER = 0x0000_0008
+INPUT_STATUS = 0x0000_000C
+MMIO_END = 0x0000_0010
+
+RESERVED_START = 0x0000_0010
+RESERVED_END = 0x0000_1000
+
+RODATA_START = 0x0000_1000
+RODATA_END = 0x0000_2000
+
+DATA_START = 0x0000_2000
+DATA_END = 0x0000_3000
+
+BSS_START = 0x0000_3000
+BSS_END = 0x0000_4000
+
+HEAP_START = 0x0000_4000
+HEAP_END = 0xC000_0000
+
+STACK_RESERVED_START = 0xC000_0000
+STACK_RESERVED_END = 0xFFF0_0000
+
+STACK_BASE = 0xFFF0_0000
+STACK_TOP = ADDRESS_SPACE_SIZE
+INITIAL_SP = 0xFFFF_FFFC
+
+REGISTER_COUNT = 16
+
+ZERO_REGISTER = 0
+SP_REGISTER = 14
+RA_REGISTER = 15
+
+REGISTERS = tuple(f"R{i}" for i in range(REGISTER_COUNT))
+
+REGISTER_INDEX = {
+    **{name.lower(): index for index, name in enumerate(REGISTERS)},
+    **{f"x{index}": index for index in range(REGISTER_COUNT)},
+}
+
+REGISTER_INDEX.update({
+    "zero": ZERO_REGISTER,
+    "sp": SP_REGISTER,
+    "ra": RA_REGISTER,
+})
+
+class Opcode(Enum):
+    NOP = 0x00
+    ADD = 0x01
+    SUB = 0x02
+    MUL = 0x03
+    DIV = 0x04
+    AND = 0x05
+    OR = 0x06
+    XOR = 0x07
+    NOT = 0x08
+    SHL = 0x09
+    SHR = 0x0A
+
+    ADDI = 0x10
+    MOVI = 0x11
+    LUI = 0x12
+    ORI = 0x13
+    LOAD = 0x14
+    LOADB = 0x15
+    STORE = 0x16
+    STOREB = 0x17
+
+    BEQ = 0x20
+    BNE = 0x21
+    BLT = 0x22
+    BGE = 0x23
+    SLT = 0x24
+    SLTU = 0x25
+
+    JMP = 0x30
+    CALL = 0x31
+    RET = 0x32
+    IRET = 0x33
+    HALT = 0x34
+
+    @property
+    def mnemonic(self) -> str:
+        return self.name.lower()
