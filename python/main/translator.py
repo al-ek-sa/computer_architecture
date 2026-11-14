@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from .isa import (
+from main.isa import (
     FORMATS,
     REGISTER_INDEX,
     WORD_MASK,
