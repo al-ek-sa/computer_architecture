@@ -27,8 +27,9 @@ BSS = "bss"
 SECTIONS = (TEXT, RODATA, DATA, BSS)
 
 SECTION_IDS = {TEXT: 1, RODATA: 2, DATA: 3, BSS: 4}
+VECTOR_TABLE_SIZE = 3 * WORD_SIZE
 SECTION_BASES = {
-    TEXT: 0x0000_0000,
+    TEXT: VECTOR_TABLE_SIZE,
     RODATA: 0x0000_1000,
     DATA: 0x0000_2000,
     BSS: 0x0000_3000,
@@ -143,6 +144,13 @@ def _validate_module(module: dict[str, Any], index: int) -> None:
     for key in ("symbols", "exports", "imports", "relocations", "source"):
         if key not in module:
             raise LinkError(f"{module['name']}: missing object field {key}")
+    vectors = module.get("vectors", {})
+    if not isinstance(vectors, dict):
+        raise LinkError(f"{module['name']}: malformed interrupt vector declarations")
+    if set(vectors) - {"INPUT"}:
+        raise LinkError(f"{module['name']}: unsupported interrupt vector declaration")
+    if any(not isinstance(name, str) or not name for name in vectors.values()):
+        raise LinkError(f"{module['name']}: malformed interrupt handler symbol")
 
 
 def _fragment_bytes(fragment: dict[str, Any]) -> bytearray:
@@ -419,6 +427,52 @@ def _collect_program(
         for item in module["source"]:
             address = _location_address(module_index, item, placed)
             source[address] = SourceInfo(module["name"], item["line"], item["text"])
+
+    start_locations = [
+        local[(module_index, "_start")]
+        for module_index, module in enumerate(modules)
+        if "_start" in module["symbols"]
+    ]
+    if len(start_locations) > 1:
+        raise LinkError("multiple _start entry points")
+    if start_locations:
+        entry_section, entry_address = start_locations[0]
+    else:
+        text_fragments = sections[TEXT]
+        if not text_fragments:
+            entry_section, entry_address = TEXT, 0
+        else:
+            entry_section, entry_address = TEXT, min(address for address, _ in text_fragments)
+    if entry_section != TEXT:
+        raise LinkError("_start must be in .text")
+
+    input_handler: int | None = None
+    for module_index, module in enumerate(modules):
+        handler_name = module.get("vectors", {}).get("INPUT")
+        if handler_name is None:
+            continue
+        if input_handler is not None:
+            raise LinkError("INPUT interrupt handler declared more than once")
+        if (module_index, handler_name) in local:
+            handler_section, input_handler = local[(module_index, handler_name)]
+        elif handler_name in exports:
+            handler_section, input_handler = exports[handler_name]
+        else:
+            raise LinkError(
+                f"{module['name']}: unresolved INPUT interrupt handler: {handler_name}"
+            )
+        if handler_section != TEXT:
+            raise LinkError("INPUT interrupt handler must be in .text")
+
+    vector_bytes = bytearray(VECTOR_TABLE_SIZE)
+    vector_bytes[0:WORD_SIZE] = entry_address.to_bytes(WORD_SIZE, "little")
+    vector_bytes[WORD_SIZE:2 * WORD_SIZE] = (
+        (input_handler or 0).to_bytes(WORD_SIZE, "little")
+    )
+    sections[TEXT].append((0, vector_bytes))
+    sections[TEXT].sort(key=lambda item: item[0])
+    symbols["$reset_vector"] = (TEXT, 0)
+    symbols["$input_vector"] = (TEXT, WORD_SIZE)
 
     return Program(sections, symbols, source, exports)
 

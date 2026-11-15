@@ -7,18 +7,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from main.isa import (
-    FORMATS,
-    REGISTER_INDEX,
-    WORD_MASK,
-    WORD_SIZE,
-    Format,
-    Instruction,
-    Opcode,
-    encode,
-    lower,
-    upper,
-)
+try:
+    from .isa import (
+        FORMATS, REGISTER_INDEX, WORD_MASK, WORD_SIZE, Format, Instruction, Opcode,
+        encode, lower, upper,
+    )
+except ImportError:
+    from isa import (
+        FORMATS, REGISTER_INDEX, WORD_MASK, WORD_SIZE, Format, Instruction, Opcode,
+        encode, lower, upper,
+    )
 
 TEXT = "text"
 RODATA = "rodata"
@@ -189,6 +187,7 @@ class Assembler:
         self.equs: dict[str, int] = {}
         self.exports: set[str] = set()
         self.imports: set[str] = set()
+        self.vectors: dict[str, str] = {}
         self.relocations: list[Relocation] = []
         self.source: list[SourceLine] = []
 
@@ -527,6 +526,8 @@ class Assembler:
             ".global": self.dir_global,
             ".globl": self.dir_global,
             ".extern": self.dir_extern,
+            ".vector": self.dir_vector,
+            ".interrupt": self.dir_interrupt,
             ".byte": self.dir_byte,
             ".ascii": self.dir_ascii,
             ".asciz": self.dir_asciz,
@@ -584,6 +585,20 @@ class Assembler:
             if name in self.symbols or name in self.equs:
                 raise AsmError(f"extern symbol is defined locally: {name}")
             self.imports.add(name)
+
+    def dir_vector(self, operands: list[str]) -> None:
+        expect(operands, 2)
+        vector_name = operands[0].upper()
+        if vector_name != "INPUT":
+            raise AsmError(f"unsupported interrupt vector: {operands[0]}")
+        handler = self.identifier(operands[1])
+        if vector_name in self.vectors:
+            raise AsmError(f"interrupt vector already declared: {vector_name}")
+        self.vectors[vector_name] = handler
+
+    def dir_interrupt(self, operands: list[str]) -> None:
+        expect(operands, 1)
+        self.dir_vector(["INPUT", operands[0]])
 
     def _data_directive(self) -> None:
         if self.section == TEXT:
@@ -665,6 +680,11 @@ class Assembler:
         for name in sorted(self.exports - self.symbols.keys()):
             raise AsmError(f"{self.name}: exported symbol is not defined: {name}")
         known = self.symbols.keys() | self.imports
+        for vector_name, handler in self.vectors.items():
+            if handler not in known:
+                raise AsmError(
+                    f"{self.name}: undefined {vector_name} interrupt handler: {handler}"
+                )
         for relocation in self.relocations:
             if relocation.symbol not in known:
                 raise AsmError(f"{self.name}: undefined symbol: {relocation.symbol}")
@@ -687,6 +707,7 @@ class Assembler:
             "equs": dict(sorted(self.equs.items())),
             "exports": sorted(self.exports),
             "imports": sorted(self.imports),
+            "vectors": dict(sorted(self.vectors.items())),
             "relocations": [
                 {
                     **relocation.location.to_json(),

@@ -25,7 +25,7 @@ def word_at(data: bytes | bytearray, address: int, base: int = 0) -> int:
     return int.from_bytes(data[offset : offset + 4], "little")
 
 
-def test_link_single_module_places_text_at_zero() -> None:
+def test_link_single_module_reserves_vectors_before_text() -> None:
     module = assemble("""
         .text
         start:
@@ -35,10 +35,12 @@ def test_link_single_module_places_text_at_zero() -> None:
 
     program = link([module])
 
-    assert len(program.text) == 8
-    assert program.symbols["single.s::start"] == ("text", 0)
-    assert decode(word_at(program.text, 0)).opcode is Opcode.MOVI
-    assert decode(word_at(program.text, 4)).opcode is Opcode.HALT
+    assert len(program.text) == 20
+    assert program.symbols["single.s::start"] == ("text", 12)
+    assert word_at(program.text, 0) == 12  # linker-generated RESET vector
+    assert word_at(program.text, 4) == 0   # INPUT disabled by default
+    assert decode(word_at(program.text, 12)).opcode is Opcode.MOVI
+    assert decode(word_at(program.text, 16)).opcode is Opcode.HALT
 
 
 def test_link_multiple_modules_places_text_sequentially() -> None:
@@ -47,9 +49,9 @@ def test_link_multiple_modules_places_text_sequentially() -> None:
 
     program = link([first, second])
 
-    assert program.symbols["first.s::first"] == ("text", 0)
-    assert program.symbols["second.s::second"] == ("text", 4)
-    assert decode(word_at(program.text, 4)).opcode is Opcode.HALT
+    assert program.symbols["first.s::first"] == ("text", 12)
+    assert program.symbols["second.s::second"] == ("text", 16)
+    assert decode(word_at(program.text, 16)).opcode is Opcode.HALT
 
 
 def test_exported_symbol_is_available_without_module_qualification() -> None:
@@ -62,8 +64,8 @@ def test_exported_symbol_is_available_without_module_qualification() -> None:
 
     program = link([module])
 
-    assert program.symbols["entry"] == ("text", 0)
-    assert program.exports["entry"] == ("text", 0)
+    assert program.symbols["entry"] == ("text", 12)
+    assert program.exports["entry"] == ("text", 12)
 
 
 def test_local_symbols_are_module_qualified() -> None:
@@ -72,8 +74,8 @@ def test_local_symbols_are_module_qualified() -> None:
 
     program = link([first, second])
 
-    assert program.symbols["a.s::same"] == ("text", 0)
-    assert program.symbols["b.s::same"] == ("text", 4)
+    assert program.symbols["a.s::same"] == ("text", 12)
+    assert program.symbols["b.s::same"] == ("text", 16)
     assert "same" not in program.symbols
 
 
@@ -109,12 +111,12 @@ def test_cross_module_pcrel_call_relocation() -> None:
     """, "callee.s")
 
     program = link([caller, callee])
-    call = decode(word_at(program.text, 0))
+    call = decode(word_at(program.text, 12))
 
     assert call.opcode is Opcode.CALL
     assert call.rd == 15
-    assert call.imm == 4  # target 8 - (PC 0 + 4)
-    assert program.symbols["worker"] == ("text", 8)
+    assert call.imm == 4  # target 20 - (PC 12 + 4)
+    assert program.symbols["worker"] == ("text", 20)
 
 
 def test_local_branch_relocation_is_resolved() -> None:
@@ -128,7 +130,7 @@ def test_local_branch_relocation_is_resolved() -> None:
     """, "branch.s")
 
     program = link([module])
-    branch = decode(word_at(program.text, 0))
+    branch = decode(word_at(program.text, 12))
 
     assert branch.opcode is Opcode.BEQ
     assert branch.imm == 4
@@ -137,7 +139,7 @@ def test_local_branch_relocation_is_resolved() -> None:
 def test_word32_relocation_writes_symbol_address() -> None:
     module = assemble("""
         .text
-        .org 0
+        .org 0x0C
         .word target
         .org 0x20
         target:
@@ -146,7 +148,7 @@ def test_word32_relocation_writes_symbol_address() -> None:
 
     program = link([module])
 
-    assert word_at(program.text, 0) == 0x20
+    assert word_at(program.text, 12) == 0x20
     assert program.symbols["word.s::target"] == ("text", 0x20)
 
 
@@ -177,7 +179,7 @@ def test_org_places_fragment_at_requested_address() -> None:
     program = link([module])
 
     assert program.symbols["org.s::entry"] == ("text", 0x40)
-    assert program.sections["text"] == [(0x40, bytearray(encode(Instruction(Opcode.HALT)).to_bytes(4, "little")))]
+    assert program.sections["text"][-1] == (0x40, bytearray(encode(Instruction(Opcode.HALT)).to_bytes(4, "little")))
 
 
 def test_text_fragments_are_not_allowed_to_overlap() -> None:
@@ -239,8 +241,11 @@ def test_binary_round_trip_preserves_all_sections_and_addresses() -> None:
     magic, version, segment_count = HEADER.unpack_from(binary)
     assert magic == MAGIC
     assert version == BINARY_VERSION
-    assert segment_count == 4
-    assert loaded["text"] == [(0x0C, bytes(program.text))]
+    assert segment_count == 5
+    assert loaded["text"] == [
+        (0, (0x0C).to_bytes(4, "little") + bytes(8)),
+        (0x0C, encode(Instruction(Opcode.HALT)).to_bytes(4, "little")),
+    ]
     assert loaded["rodata"] == [(0x1000, bytes(program.rodata))]
     assert loaded["data"] == [(0x2000, bytes(program.data))]
     assert loaded["bss"] == [(0x3000, bytes(program.bss))]
@@ -275,7 +280,7 @@ def test_listing_contains_address_machine_code_and_mnemonic() -> None:
     result = listing(program)
 
     assert "listing.s::start:" in result
-    assert "00000000 - " in result
+    assert "0000000C - " in result
     assert "movi" in result.lower()
     assert "halt" in result.lower()
 
@@ -285,9 +290,9 @@ def test_source_locations_are_mapped_to_linked_addresses() -> None:
 
     program = link([module])
 
-    assert program.source[0].module == "source.s"
-    assert program.source[0].text.lower().startswith("movi")
-    assert program.source[0].line == 3
+    assert program.source[12].module == "source.s"
+    assert program.source[12].text.lower().startswith("movi")
+    assert program.source[12].line == 3
 
 
 def test_abs_relocation_resolves_data_symbol_address() -> None:
@@ -303,7 +308,7 @@ def test_abs_relocation_resolves_data_symbol_address() -> None:
     """, "object.s")
 
     program = link([module, target])
-    instruction = decode(word_at(program.text, 0))
+    instruction = decode(word_at(program.text, 12))
 
     assert instruction.opcode is Opcode.MOVI
     assert instruction.imm == 0x2000
@@ -323,8 +328,8 @@ def test_hi_lo_relocations_resolve_full_address() -> None:
     """, "object.s")
 
     program = link([module, target])
-    lui = decode(word_at(program.text, 0))
-    ori = decode(word_at(program.text, 4))
+    lui = decode(word_at(program.text, 12))
+    ori = decode(word_at(program.text, 16))
     address = (lui.imm << 18) | ori.imm
 
     assert address == 0x2000
