@@ -93,3 +93,29 @@ def test_cache_rejects_unsupported_access_width(cache):
 def test_cache_access_out_of_32_bit_range_fails(cache):
     with pytest.raises(MemoryFault, match="out of range"):
         cache.read(0x1_0000_0000, 1)
+
+
+def test_cross_line_read_combines_bytes_from_both_lines(memory):
+    cache = DataCache(memory=memory, line_size=4, line_count=2)
+    access = cache.read(0x1003, 2)
+    assert access.value == 0x0403
+    assert access.latency == 20
+    assert not access.hit
+
+
+def test_cross_line_write_updates_both_cache_lines_and_flushes(memory):
+    cache = DataCache(memory=memory, line_size=4, line_count=2)
+    access = cache.write(0x1003, 0xBBAA, 2)
+    assert access.latency == 20
+    assert memory.read_bytes(0x1003, 2) == bytes((3, 4))
+    assert cache.read(0x1003, 2).value == 0xBBAA
+    cache.flush()
+    assert memory.read_bytes(0x1003, 2) == bytes((0xAA, 0xBB))
+
+
+def test_discard_invalidate_does_not_write_back_dirty_line(memory):
+    cache = DataCache(memory=memory, line_size=16, line_count=2)
+    cache.write(0x1000, 0xDEADBEEF, 4)
+    cache.invalidate(0x1000, writeback=False)
+    assert memory.read(0x1000, 4) == 0x03020100
+    assert not cache.lines[0].valid

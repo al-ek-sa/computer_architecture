@@ -194,6 +194,23 @@ def place_modules(
 
 
 def check_layout(fragments: list[PlacedFragment]) -> None:
+    explicit_vector_tables = [
+        fragment
+        for fragment in fragments
+        if fragment.section == TEXT
+        and fragment.address == 0
+        and fragment.data
+    ]
+    if len(explicit_vector_tables) > 1:
+        raise LinkError("multiple explicit interrupt vector tables")
+
+    for fragment in explicit_vector_tables:
+        if len(fragment.data) != VECTOR_TABLE_SIZE:
+            raise LinkError(
+                f"{fragment.module_name}: explicit vector table must be "
+                f"exactly {VECTOR_TABLE_SIZE} bytes"
+            )
+
     for section in SECTIONS:
         low = SECTION_BASES[section]
         high = SECTION_LIMITS[section]
@@ -203,7 +220,14 @@ def check_layout(fragments: list[PlacedFragment]) -> None:
             key=lambda item: (item.address, item.end),
         )
         for fragment in used:
-            if fragment.address < low or fragment.end > high:
+            is_explicit_vector_table = (
+                section == TEXT
+                and fragment.address == 0
+                and len(fragment.data) == VECTOR_TABLE_SIZE
+            )
+            if not is_explicit_vector_table and (
+                fragment.address < low or fragment.end > high
+            ):
                 raise LinkError(
                     f"{fragment.module_name}: {section} range "
                     f"{fragment.address:#x}..{fragment.end:#x} is outside "
@@ -438,11 +462,17 @@ def _collect_program(
     if start_locations:
         entry_section, entry_address = start_locations[0]
     else:
-        text_fragments = sections[TEXT]
+        text_fragments = [
+            (address, data)
+            for address, data in sections[TEXT]
+            if address != 0 and data
+        ]
         if not text_fragments:
             entry_section, entry_address = TEXT, 0
         else:
-            entry_section, entry_address = TEXT, min(address for address, _ in text_fragments)
+            entry_section, entry_address = TEXT, min(
+                address for address, _ in text_fragments
+            )
     if entry_section != TEXT:
         raise LinkError("_start must be in .text")
 
@@ -464,13 +494,28 @@ def _collect_program(
         if handler_section != TEXT:
             raise LinkError("INPUT interrupt handler must be in .text")
 
-    vector_bytes = bytearray(VECTOR_TABLE_SIZE)
-    vector_bytes[0:WORD_SIZE] = entry_address.to_bytes(WORD_SIZE, "little")
-    vector_bytes[WORD_SIZE:2 * WORD_SIZE] = (
-        (input_handler or 0).to_bytes(WORD_SIZE, "little")
+    explicit_vector_table = next(
+        (
+            data
+            for address, data in sections[TEXT]
+            if address == 0 and len(data) == VECTOR_TABLE_SIZE
+        ),
+        None,
     )
-    sections[TEXT].append((0, vector_bytes))
-    sections[TEXT].sort(key=lambda item: item[0])
+
+    if explicit_vector_table is None:
+        vector_bytes = bytearray(VECTOR_TABLE_SIZE)
+        vector_bytes[0:WORD_SIZE] = entry_address.to_bytes(WORD_SIZE, "little")
+        vector_bytes[WORD_SIZE:2 * WORD_SIZE] = (
+            (input_handler or 0).to_bytes(WORD_SIZE, "little")
+        )
+        sections[TEXT].append((0, vector_bytes))
+        sections[TEXT].sort(key=lambda item: item[0])
+    elif input_handler is not None:
+        explicit_vector_table[WORD_SIZE:2 * WORD_SIZE] = (
+            input_handler.to_bytes(WORD_SIZE, "little")
+        )
+
     symbols["$reset_vector"] = (TEXT, 0)
     symbols["$input_vector"] = (TEXT, WORD_SIZE)
 

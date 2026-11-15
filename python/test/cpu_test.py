@@ -21,8 +21,12 @@ def load_words(words: list[int]) -> CPU:
 def test_end_to_end_assembler_linker_cpu() -> None:
     source = """
     .text
-    .global _start
-    _start:
+    .org 0
+    .word start
+    .word 0
+    .word 0
+    .org 0x0C
+    start:
         MOVI R1, 65
         STOREB R1, 4(R0)
         HALT
@@ -67,6 +71,9 @@ def test_store_and_load_word_from_data_memory() -> None:
     ])
     cpu.run(100)
     assert cpu.registers[2] == 123
+    assert cpu.cache is not None
+    assert cpu.cache.read(0x2000, 4).value == 123
+    cpu.cache.flush()
     assert cpu.memory.read(0x2000, 4) == 123
 
 
@@ -138,3 +145,64 @@ def test_halted_cpu_cannot_tick() -> None:
     cpu.run(20)
     with pytest.raises(Exception, match="halted"):
         cpu.tick()
+
+
+def test_cpu_second_access_to_same_cache_line_takes_one_cycle() -> None:
+    cpu = load_words([
+        0x0C, 0, 0,
+        encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
+        encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
+        encode(Instruction(Opcode.HALT)),
+    ])
+    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(4, "little")
+
+    memory_stage_cycles = []
+    previous_stage = None
+    while not cpu.halted:
+        entry = cpu.tick()
+        if entry.stage == "MEMORY":
+            memory_stage_cycles.append(entry.cycle)
+        previous_stage = entry.stage
+
+    # First load misses (10 cycles), second load hits (1 cycle).
+    assert cpu.registers[1] == 11
+    assert cpu.registers[2] == 22
+    assert cpu.cache is not None
+    assert cpu.cache.stats.misses == 1
+    assert cpu.cache.stats.hits == 1
+
+
+def test_cpu_mmio_access_bypasses_data_cache() -> None:
+    cpu = load_words([
+        0x0C, 0, 0,
+        encode(Instruction(Opcode.MOVI, rd=1, imm=ord("K"))),
+        encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
+        encode(Instruction(Opcode.HALT)),
+    ])
+    cpu.run(100)
+    assert cpu.output_text == "K"
+    assert cpu.cache is not None
+    assert cpu.cache.stats.accesses == 0
+
+
+def test_cpu_cache_miss_and_hit_have_expected_memory_stage_durations() -> None:
+    cpu = load_words([
+        0x0C, 0, 0,
+        encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
+        encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
+        encode(Instruction(Opcode.HALT)),
+    ])
+    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(4, "little")
+    durations = []
+    current_duration = 0
+    was_in_memory = False
+    while not cpu.halted:
+        entry = cpu.tick()
+        in_memory = entry.stage == "MEMORY"
+        if in_memory:
+            current_duration += 1
+        elif was_in_memory:
+            durations.append(current_duration)
+            current_duration = 0
+        was_in_memory = in_memory
+    assert durations == [10, 1]

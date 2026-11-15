@@ -3,53 +3,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Iterable
 
 try:
     from .isa import (
-        CYCLE_COUNTER,
-        DMEM_SIZE,
-        IMEM_SIZE,
-        INITIAL_SP,
-        INPUT_DATA,
-        INPUT_STATUS,
-        INPUT_VECTOR,
-        MMIO_END,
-        OUTPUT_DATA,
-        RA_REGISTER,
-        RESET_VECTOR,
-        SP_REGISTER,
-        WORD_MASK,
-        WORD_SIZE,
-        Instruction,
-        Opcode,
-        branch_target,
-        decode,
+        CYCLE_COUNTER, DMEM_SIZE, IMEM_SIZE, INITIAL_SP, INPUT_DATA, INPUT_STATUS,
+        INPUT_VECTOR, MMIO_END, OUTPUT_DATA, RA_REGISTER, RESET_VECTOR, SP_REGISTER,
+        WORD_MASK, WORD_SIZE, Instruction, Opcode, branch_target, decode,
     )
     from .linker import LinkError, from_binary
+    from .cache import DataCache
 except ImportError:
     from isa import (
-        CYCLE_COUNTER,
-        DMEM_SIZE,
-        IMEM_SIZE,
-        INITIAL_SP,
-        INPUT_DATA,
-        INPUT_STATUS,
-        INPUT_VECTOR,
-        MMIO_END,
-        OUTPUT_DATA,
-        RA_REGISTER,
-        RESET_VECTOR,
-        SP_REGISTER,
-        WORD_MASK,
-        WORD_SIZE,
-        Instruction,
-        Opcode,
-        branch_target,
-        decode,
+        CYCLE_COUNTER, DMEM_SIZE, IMEM_SIZE, INITIAL_SP, INPUT_DATA, INPUT_STATUS,
+        INPUT_VECTOR, MMIO_END, OUTPUT_DATA, RA_REGISTER, RESET_VECTOR, SP_REGISTER,
+        WORD_MASK, WORD_SIZE, Instruction, Opcode, branch_target, decode,
     )
     from linker import LinkError, from_binary
-    from linker import LinkError, from_binary
+    from cache import DataCache
 
 
 class CPUError(RuntimeError):
@@ -183,6 +153,7 @@ class Memory:
 @dataclass(slots=True)
 class CPU:
     memory: Memory = field(default_factory=Memory)
+    cache: DataCache | None = None
     registers: list[int] = field(default_factory=lambda: [0] * 16)
     pc: int = 0
     ir: int = 0
@@ -202,10 +173,21 @@ class CPU:
     _memory_size: int = WORD_SIZE
     _memory_is_load: bool = False
     _memory_wait: int = 0
+    _memory_cached: bool = False
     _next_pc: int | None = None
     _detail: str = ""
 
+    def __post_init__(self) -> None:
+        if self.cache is None:
+            self.cache = DataCache(self.memory.data)
+
+    def _bind_cache_to_memory(self) -> None:
+        self.cache = DataCache(self.memory.data)
+
     def reset(self) -> None:
+        if self.cache is not None:
+            self.cache.clear(writeback=True)
+            self.cache.clear_stats()
         self.registers[:] = [0] * 16
         self.registers[SP_REGISTER] = INITIAL_SP
         self.pc = self.memory.fetch_word(RESET_VECTOR)
@@ -227,6 +209,7 @@ class CPU:
             raise CPUError(f"cannot load executable: {error}") from None
         self.memory = Memory()
         self.memory.load_segments(segments)
+        self._bind_cache_to_memory()
         if reset:
             self.reset()
 
@@ -242,6 +225,7 @@ class CPU:
     ) -> None:
         self.memory = Memory()
         self.memory.load_segments(segments)
+        self._bind_cache_to_memory()
         if reset:
             self.reset()
 
@@ -265,6 +249,7 @@ class CPU:
         self._memory_size = WORD_SIZE
         self._memory_is_load = False
         self._memory_wait = 0
+        self._memory_cached = False
         self._next_pc = None
         self._detail = ""
 
@@ -310,9 +295,7 @@ class CPU:
 
         if self.stage is Stage.FETCH:
             if self.pending_interrupt and not self.in_interrupt:
-                input_handler = self.memory.fetch_word(INPUT_VECTOR)
-                if input_handler != 0:
-                    self._take_interrupt()
+                self._take_interrupt()
             self.ir = self.memory.fetch_word(self.pc)
             self.stage = Stage.DECODE
 
@@ -337,17 +320,19 @@ class CPU:
             else:
                 self._memory_wait = 0
                 if self._memory_is_load:
-                    self._result = self.memory.read(
-                        self._memory_address, self._memory_size
-                    )
+                    if not self._memory_cached:
+                        self._result = self.memory.read(
+                            self._memory_address, self._memory_size
+                        )
                     self.stage = Stage.WRITEBACK
                     self._detail = f"load {self._memory_address:#010x}"
                 else:
-                    self.memory.write(
-                        self._memory_address,
-                        self._memory_value,
-                        self._memory_size,
-                    )
+                    if not self._memory_cached:
+                        self.memory.write(
+                            self._memory_address,
+                            self._memory_value,
+                            self._memory_size,
+                        )
                     self.pc = self._next_pc if self._next_pc is not None else self.pc
                     self.stage = Stage.FETCH
                     self._detail = f"store {self._memory_address:#010x}"
@@ -425,7 +410,15 @@ class CPU:
             self._memory_address = (a + instr.imm) & WORD_MASK
             self._memory_size = 1 if op is Opcode.LOADB else WORD_SIZE
             self._memory_is_load = True
-            self._memory_wait = 1 if self._memory_address < MMIO_END else 10
+            self._memory_cached = self._memory_address >= MMIO_END
+            if self._memory_cached:
+                assert self.cache is not None
+                access = self.cache.read(self._memory_address, self._memory_size)
+                self._result = access.value
+                self._memory_wait = access.latency
+                self._detail = f"cache {'hit' if access.hit else 'miss'} load {self._memory_address:#010x}"
+            else:
+                self._memory_wait = 1
             self.stage = Stage.MEMORY
             self._detail = f"load request {self._memory_address:#010x}"
             return
@@ -434,7 +427,16 @@ class CPU:
             self._memory_value = b
             self._memory_size = 1 if op is Opcode.STOREB else WORD_SIZE
             self._memory_is_load = False
-            self._memory_wait = 1 if self._memory_address < MMIO_END else 10
+            self._memory_cached = self._memory_address >= MMIO_END
+            if self._memory_cached:
+                assert self.cache is not None
+                access = self.cache.write(
+                    self._memory_address, self._memory_value, self._memory_size
+                )
+                self._memory_wait = access.latency
+                self._detail = f"cache {'hit' if access.hit else 'miss'} store {self._memory_address:#010x}"
+            else:
+                self._memory_wait = 1
             self.stage = Stage.MEMORY
             self._detail = f"store request {self._memory_address:#010x}"
             return
