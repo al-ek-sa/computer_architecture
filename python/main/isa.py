@@ -71,6 +71,7 @@ ZERO_REGISTER = 0
 SP_REGISTER = 14
 # Номер регистра R15
 RA_REGISTER = 15
+#Генерация имен от r0 до r15 + индексация регистров от х0 до х15 и инициалицазия специальных регистров
 REGISTERS = tuple(f"R{i}" for i in range(REGISTER_COUNT))
 REGISTER_INDEX = {
     **{name.lower(): index for index, name in enumerate(REGISTERS)},
@@ -151,6 +152,7 @@ class Opcode(Enum):
 
 
 class Format(Enum):
+    # Данные форматы описаны в документации ../dpcs/isa.md
     REGISTER = "R"
     IMMEDIATE = "I"
     STORE = "S"
@@ -192,58 +194,80 @@ FORMATS: dict[Opcode, Format] = {
     Opcode.HALT: Format.REGISTER,
 }
 
+# Словарь соответствия числового кода операции элементу перечисления Opcode
 OPCODES = {opcode.value: opcode for opcode in Opcode}
+# Словарь соответствия мнемоники инструкции элементу перечисления Opcode
 MNEMONICS = {opcode.mnemonic: opcode for opcode in Opcode}
+# Неизменяемое множество инструкций чтения из памяти
 LOADS = frozenset({Opcode.LOAD, Opcode.LOADB})
+# Неизменяемое множество инструкций записи в память
 STORES = frozenset({Opcode.STORE, Opcode.STOREB})
 
+# Количество бит для знакового непосредственного операнда (от -2^17 до 2^17 - 1)
 SIGNED_IMMEDIATE_BITS = 18
+# Количество бит для беззнакового непосредственного операнда (от 0 до 2^18 - 1)
 UNSIGNED_IMMEDIATE_BITS = 18
+# Количество бит для смещения условного перехода (формат B)
 BRANCH_DISPLACEMENT_BITS = 18
+# Количество бит для смещения безусловного перехода или вызова подпрограммы (формат J)
 JUMP_DISPLACEMENT_BITS = 22
+# Количество бит для непосредственного значения в инструкции загрузки старшей части константы (формат U)
 UPPER_IMMEDIATE_BITS = 14
 
-
+# Исключение при обнаружении некорректной инструкции
 class ISAError(ValueError):
     """Invalid instruction or instruction encoding."""
 
 
+# Иммутабельное описание одной машинной инструкции
+# frozen=True делает объект иммутабельным
+# slots=True оптимизирует хранение атрибутов экземпляра
 @dataclass(frozen=True, slots=True)
 class Instruction:
     opcode: Opcode
     rd: int = 0
     rs1: int = 0
     rs2: int = 0
+
+    # Непосредственное значение, смещение или адресный операнд.
     imm: int = 0
 
     def __post_init__(self) -> None:
+        # Проверяем, что номера всех используемых полей регистров находятся в допустимом диапазоне
         for field_name, register in (
             ("rd", self.rd),
             ("rs1", self.rs1),
             ("rs2", self.rs2),
         ):
+            # Если номер регистра выходит за допустимые границы, генер. исключение
             if not 0 <= register < REGISTER_COUNT:
                 raise ISAError(f"{field_name} register out of range: {register}")
 
 
+# Проверяет, помещается ли значение в заданное количество беззнаковых бит
 def _check_unsigned(value: int, width: int, what: str) -> int:
+    # Беззнаковое число должно находиться в диапазоне [0, 2^width - 1]
     if not 0 <= value < (1 << width):
         raise ISAError(f"{what} {value} does not fit into {width} unsigned bits")
     return value
 
 
+# Проверяет, помещается ли значение в заданное количество знаковых бит
 def _check_signed(value: int, width: int, what: str) -> int:
     limit = 1 << (width - 1)
+    # Проверяем диапазон от -2^(width-1) до 2^(width-1) - 1
     if not -limit <= value < limit:
         raise ISAError(f"{what} {value} does not fit into {width} signed bits")
     return value & ((1 << width) - 1)
 
 
+# Выполняет знаковое расширение числа из заданной разрядности
 def _sign_extend(value: int, width: int) -> int:
     sign = 1 << (width - 1)
     return (value ^ sign) - sign
 
 
+# Проверяет смещение относительно PC на соответствие требованиям архитектуры
 def _check_displacement(value: int, width: int) -> int:
     if value % WORD_SIZE:
         raise ISAError(
@@ -252,6 +276,7 @@ def _check_displacement(value: int, width: int) -> int:
     return _check_signed(value, width, "displacement")
 
 
+# Проверяет, что инструкция не содержит лишних операндов
 def _validate_unused(instr: Instruction) -> None:
     op = instr.opcode
     if op == Opcode.NOP or op in {Opcode.RET, Opcode.IRET, Opcode.HALT}:
@@ -268,64 +293,94 @@ def _validate_unused(instr: Instruction) -> None:
             raise ISAError("jmp has no destination register; rd must be R0")
 
 
+# Преобразует объект Instruction в 32-битное машинное слово
 def encode(instr: Instruction) -> int:
+    # Проверка отсутствия лишних операндов
     _validate_unused(instr)
     op = instr.opcode.value
     fmt = FORMATS[instr.opcode]
     word = op << 26
 
     if fmt is Format.REGISTER:
+        # Записываем 4-битный индекс регистра назначения в биты 22–25
         word |= instr.rd << 22
+        # Записываем индекс первого регистра-операнда в биты 18–21
         word |= instr.rs1 << 18
+        # Записываем индекс второго регистра-операнда в биты 14–17
         word |= instr.rs2 << 14
 
     elif fmt is Format.IMMEDIATE:
+        # ORI использует беззнаковое непосредственное значение
         if instr.opcode == Opcode.ORI:
             immediate = _check_unsigned(
                 instr.imm, UNSIGNED_IMMEDIATE_BITS, "ORI immediate"
             )
+        # Остальные инструкции формата I используют знаковое значение
         else:
             immediate = _check_signed(
                 instr.imm, SIGNED_IMMEDIATE_BITS, "immediate"
             )
+        # Записываем регистр назначения в биты 22–25
         word |= instr.rd << 22
+        # Записываем первый регистр-операнд в биты 18–21
         word |= instr.rs1 << 18
+        # Записываем 18-битное непосредственное значение в младшие биты
         word |= immediate
 
+    # Кодирование инструкций формата S
     elif fmt is Format.STORE:
+        # Проверяем знаковое смещение относительно базового регистра
         offset = _check_signed(instr.imm, SIGNED_IMMEDIATE_BITS, "store offset")
+        # Записываем базовый регистр в биты 22–25
         word |= instr.rs1 << 22
+        # Записываем регистр с данными в биты 18–21
         word |= instr.rs2 << 18
+        # Записываем смещение в младшие 18 бит
         word |= offset
 
+    # Кодирование инструкций формата B
     elif fmt is Format.BRANCH:
+        # Проверяем смещение условного перехода (должно быть выровнено и помещаться в 18 знаковых бит)
         displacement = _check_displacement(
             instr.imm, BRANCH_DISPLACEMENT_BITS
         )
+        # Записываем первый регистр для сравнения
         word |= instr.rs1 << 22
+        # Записываем второй регистр для сравнения
         word |= instr.rs2 << 18
+        # Записываем смещение перехода в младшие 18 бит
         word |= displacement
 
+    # Кодирование инструкций формата J
     elif fmt is Format.JUMP:
+        # Проверяем смещение безусловного перехода или вызова
         displacement = _check_displacement(
             instr.imm, JUMP_DISPLACEMENT_BITS
         )
+        # Записываем регистр назначения
         word |= instr.rd << 22
+        # Записываем 22-битное смещение перехода
         word |= displacement
 
+    # Кодирование инструкций формата U
     elif fmt is Format.UPPER:
+        # Проверяем, что непосредственное значение помещается в 14 беззнаковых бит
         immediate = _check_unsigned(
             instr.imm, UPPER_IMMEDIATE_BITS, "LUI immediate"
         )
+        # Записываем регистр назначения
         word |= instr.rd << 22
+        # Размещаем 14-битное значение в битах 8–21
         word |= immediate << 8
 
     else:
         raise ISAError(f"unsupported instruction format: {fmt}")
 
+    # Оставляем только младшие 32 бита и возвращаем машинное слово
     return word & WORD_MASK
 
 
+# Преобразует 32-битное машинное слово обратно в объект Instruction
 def decode(word: int) -> Instruction:
     if not 0 <= word <= WORD_MASK:
         raise ISAError(f"instruction word out of range: {word}")
@@ -342,21 +397,25 @@ def decode(word: int) -> Instruction:
     rs2 = (word >> 14) & 0xF
     imm18 = _sign_extend(word & 0x3FFFF, 18)
 
+    # Декодирование инструкций формата R
     if fmt is Format.REGISTER:
         if word & 0x3FFF:
             raise ISAError(f"nonzero reserved bits in {opcode.mnemonic}")
         instr = Instruction(opcode, rd=rd, rs1=rs1, rs2=rs2)
 
+    # Декодирование инструкций формата I
     elif fmt is Format.IMMEDIATE:
         raw_imm = word & 0x3FFFF
         immediate = raw_imm if opcode == Opcode.ORI else _sign_extend(raw_imm, 18)
         instr = Instruction(opcode, rd=rd, rs1=rs1, imm=immediate)
 
+    # Декодирование инструкций формата S
     elif fmt is Format.STORE:
         instr = Instruction(
             opcode, rs1=rd, rs2=rs1, imm=imm18
         )
 
+    # Декодирование инструкций формата B
     elif fmt is Format.BRANCH:
         instr = Instruction(
             opcode, rs1=rd, rs2=rs1, imm=imm18
@@ -364,6 +423,7 @@ def decode(word: int) -> Instruction:
         if instr.imm % WORD_SIZE:
             raise ISAError("branch displacement is not word-aligned")
 
+    # Декодирование инструкций формата J
     elif fmt is Format.JUMP:
         raw = word & 0x3F_FFFF
         displacement = _sign_extend(raw, JUMP_DISPLACEMENT_BITS)
@@ -371,6 +431,7 @@ def decode(word: int) -> Instruction:
         if displacement % WORD_SIZE:
             raise ISAError("jump displacement is not word-aligned")
 
+    # Декодирование инструкций формата U
     elif fmt is Format.UPPER:
         if word & 0xFF:
             raise ISAError("nonzero reserved bits in LUI")
@@ -383,26 +444,31 @@ def decode(word: int) -> Instruction:
     return instr
 
 
+# Вычисляет адрес перехода для PC-relative инструкции
 def branch_target(pc: int, instr: Instruction) -> int:
     if FORMATS[instr.opcode] not in {Format.BRANCH, Format.JUMP}:
         raise ISAError("instruction is not PC-relative")
     return (pc + WORD_SIZE + instr.imm) & WORD_MASK
 
 
+# Выделяет старшие 14 бит из 32-битного значения
 def upper(value: int) -> int:
     return (value & WORD_MASK) >> 18
 
 
+# Выделяет младшие 18 бит из значения
 def lower(value: int) -> int:
     return value & 0x3_FFFF
 
 
+# Разделяет 32-битное значение на старшую и младшую части
 def split_address(value: int) -> tuple[int, int]:
     if not 0 <= value <= WORD_MASK:
         raise ISAError(f"32-bit value out of range: {value}")
     return upper(value), lower(value)
 
 
+# Преобразует объект инструкции в текстовую ассемблерную запись
 def disassemble(instr: Instruction, address: int = 0) -> str:
     op = instr.opcode
     rd, rs1, rs2 = REGISTERS[instr.rd], REGISTERS[instr.rs1], REGISTERS[instr.rs2]
@@ -443,16 +509,19 @@ def disassemble(instr: Instruction, address: int = 0) -> str:
     return f"{op.mnemonic} {operands}".rstrip()
 
 
+# Преобразует инструкцию в последовательность из четырёх байтов
 def instruction_to_bytes(instr: Instruction) -> bytes:
     return encode(instr).to_bytes(WORD_SIZE, "little")
 
 
+# Преобразует четыре байта машинного кода обратно в инструкцию
 def instruction_from_bytes(data: bytes) -> Instruction:
     if len(data) != WORD_SIZE:
         raise ISAError(f"instruction must be exactly {WORD_SIZE} bytes")
     return decode(int.from_bytes(data, "little"))
 
 
+# Последовательно перебирает инструкции, содержащиеся в бинарном образе
 def iter_instructions(data: bytes, start_address: int = 0):
     if len(data) % WORD_SIZE:
         raise ISAError("instruction memory image size is not a multiple of 4")
