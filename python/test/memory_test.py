@@ -1,6 +1,11 @@
 import pytest
 
-from main.memory import HarvardMemory, InstructionMemory, MemoryFault, SparseDataMemory
+from main.memory import (
+    HarvardMemory,
+    InstructionMemory,
+    MemoryFault,
+    SparseDataMemory,
+)
 
 
 def test_instruction_memory_load_and_fetch_little_endian():
@@ -44,12 +49,21 @@ def test_sparse_data_memory_supports_high_32_bit_addresses():
 
 def test_sparse_data_memory_access_crosses_page_boundary():
     memory = SparseDataMemory(page_bits=4)
-    memory.write_bytes(14, b"abcd")
-    assert memory.read_bytes(14, 4) == b"abcd"
+
+    memory.write_bytes(30, b"abcd")
+
+    assert memory.read_bytes(30, 4) == b"abcd"
     assert memory.allocated_pages() == 2
 
 
-@pytest.mark.parametrize("address,size", [(-1, 1), (0x1_0000_0000, 1), (0xFFFF_FFFF, 2)])
+@pytest.mark.parametrize(
+    "address,size",
+    [
+        (-1, 1),
+        (0x1_0000_0000, 1),
+        (0xFFFF_FFFF, 2),
+    ],
+)
 def test_sparse_data_memory_rejects_invalid_ranges(address, size):
     memory = SparseDataMemory()
     with pytest.raises(MemoryFault):
@@ -70,6 +84,9 @@ def test_program_segments_cannot_overwrite_mmio():
 
 def test_harvard_memory_keeps_instruction_and_data_spaces_separate():
     memory = HarvardMemory()
-    memory.load_segments({"text": [(0x0C, b"CODE")], "data": [(0x2000, b"DATA")]})
+    memory.load_segments({
+        "text": [(0x0C, b"CODE")],
+        "data": [(0x2000, b"DATA")],
+    })
     assert memory.instruction.read(0x0C, 4) == b"CODE"
     assert memory.data.read_bytes(0x2000, 4) == b"DATA"

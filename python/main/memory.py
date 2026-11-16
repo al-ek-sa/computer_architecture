@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable
 
-from .isa import IMEM_SIZE, WORD_SIZE, WORD_MASK, MMIO_END
+from .isa import DMEM_SIZE, IMEM_SIZE, MMIO_END, WORD_SIZE
 
 
 class MemoryErrorBase(RuntimeError):
@@ -17,7 +17,7 @@ class MemoryFault(MemoryErrorBase):
 @dataclass(slots=True)
 class InstructionMemory:
     size: int = IMEM_SIZE
-    _bytes: bytearray = field(init=False)
+    _bytes: bytearray = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.size <= 0:
@@ -25,15 +25,21 @@ class InstructionMemory:
         self._bytes = bytearray(self.size)
 
     def load(self, address: int, payload: bytes) -> None:
+        if address < 0 or address % WORD_SIZE:
+            raise MemoryFault(f"invalid instruction segment address: {address:#x}")
+        if len(payload) % WORD_SIZE:
+            raise MemoryFault("instruction segment size must be a multiple of 4")
         end = address + len(payload)
-        if address < 0 or end > self.size:
-            raise MemoryFault(f"instruction segment [{address:#x}, {end:#x}) out of range")
+        if end > self.size:
+            raise MemoryFault(
+                f"instruction segment [{address:#x}, {end:#x}) out of range"
+            )
         self._bytes[address:end] = payload
 
     def fetch_word(self, address: int) -> int:
-        if address & (WORD_SIZE - 1):
+        if address < 0 or address % WORD_SIZE:
             raise MemoryFault(f"unaligned instruction address: {address:#x}")
-        if address < 0 or address + WORD_SIZE > self.size:
+        if address + WORD_SIZE > self.size:
             raise MemoryFault(f"instruction address out of range: {address:#x}")
         return int.from_bytes(self._bytes[address:address + WORD_SIZE], "little")
 
@@ -47,19 +53,30 @@ class InstructionMemory:
 class SparseDataMemory:
     address_bits: int = 32
     page_bits: int = 12
-    _pages: dict[int, bytearray] = field(default_factory=dict)
+    _pages: dict[int, bytearray] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.address_bits <= 0:
+            raise ValueError("address_bits must be positive")
+        if self.page_bits <= 0 or self.page_bits > self.address_bits:
+            raise ValueError("page_bits must be between 1 and address_bits")
 
     @property
     def address_limit(self) -> int:
-        return 1 << self.address_bits
+        return min(1 << self.address_bits, DMEM_SIZE)
 
     @property
     def page_size(self) -> int:
         return 1 << self.page_bits
 
-    def _check_range(self, address: int, size: int) -> None:
-        if size < 0 or address < 0 or address + size > self.address_limit:
-            raise MemoryFault(f"data address range [{address:#x}, {address + size:#x}) out of range")
+    def _check_range(self, address: int, size: int, *, allow_mmio: bool = False) -> None:
+        end = address + size
+        if size < 0 or address < 0 or end > self.address_limit:
+            raise MemoryFault(
+                f"data address range [{address:#x}, {end:#x}) out of range"
+            )
+        if not allow_mmio and size and address < MMIO_END:
+            raise MemoryFault("MMIO addresses are not part of backing Data Memory")
 
     def _page(self, page_number: int, *, create: bool) -> bytearray | None:
         page = self._pages.get(page_number)
@@ -102,12 +119,12 @@ class SparseDataMemory:
     def write(self, address: int, value: int, size: int) -> None:
         if size not in (1, 2, 4):
             raise MemoryFault(f"unsupported write size: {size}")
-        self.write_bytes(address, (value & ((1 << (size * 8)) - 1)).to_bytes(size, "little"))
+        mask = (1 << (size * 8)) - 1
+        payload = (value & mask).to_bytes(size, "little")
+        self.write_bytes(address, payload)
 
     def load_segments(self, segments: Iterable[tuple[int, bytes]]) -> None:
         for address, payload in segments:
-            if address < MMIO_END:
-                raise MemoryFault("program data may not overwrite MMIO registers")
             self.write_bytes(address, payload)
 
     def allocated_pages(self) -> int:
@@ -124,5 +141,7 @@ class HarvardMemory:
             if section == "text":
                 for address, payload in items:
                     self.instruction.load(address, payload)
-            else:
+            elif section in {"rodata", "data", "bss"}:
                 self.data.load_segments(items)
+            else:
+                raise MemoryFault(f"unknown memory section: {section}")

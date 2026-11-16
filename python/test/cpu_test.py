@@ -44,7 +44,7 @@ def test_end_to_end_assembler_linker_cpu() -> None:
 def test_reset_vector_and_initial_stack_pointer() -> None:
     cpu = load_words([0x0C, 0, 0, encode(Instruction(Opcode.HALT))])
     assert cpu.pc == 0x0C
-    assert cpu.registers[14] == 0x400000
+    assert cpu.registers[14] == 1 << 32
     assert cpu.registers[0] == 0
 
 
@@ -164,7 +164,6 @@ def test_cpu_second_access_to_same_cache_line_takes_one_cycle() -> None:
             memory_stage_cycles.append(entry.cycle)
         previous_stage = entry.stage
 
-    # First load misses (10 cycles), second load hits (1 cycle).
     assert cpu.registers[1] == 11
     assert cpu.registers[2] == 22
     assert cpu.cache is not None

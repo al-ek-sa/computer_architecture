@@ -14,7 +14,7 @@ WORD_MASK = 0xFFFF_FFFF
 # Размер памяти команд
 IMEM_SIZE = 0x1_0000
 # Размер памяти данных
-DMEM_SIZE = 0x40_0000
+DMEM_SIZE = 1 << 32
 
 # Адрес вектора сброса
 RESET_VECTOR = 0x0000
