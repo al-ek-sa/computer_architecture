@@ -88,13 +88,33 @@ class Memory:
             raise MemoryFault(f"instruction address out of range: {address:#x}")
         return int.from_bytes(self.instruction[address:address + WORD_SIZE], "little")
 
-    def read(self, address: int, size: int) -> int:
+    def validate_access(self, address: int, size: int, *, write: bool = False) -> None:
         if size not in (1, WORD_SIZE):
-            raise MemoryFault(f"unsupported read size: {size}")
+            operation = "write" if write else "read"
+            raise MemoryFault(f"unsupported {operation} size: {size}")
         if address < 0 or address + size > DMEM_SIZE:
             raise MemoryFault(f"data address out of range: {address:#x}")
         if size == WORD_SIZE and address % WORD_SIZE:
-            raise MemoryFault(f"unaligned word read: {address:#x}")
+            operation = "write" if write else "read"
+            raise MemoryFault(f"unaligned word {operation}: {address:#x}")
+        if address < MMIO_END:
+            if address not in (INPUT_DATA, OUTPUT_DATA, CYCLE_COUNTER, INPUT_STATUS):
+                raise MemoryFault(f"unmapped MMIO access: {address:#x}")
+            if write and address != OUTPUT_DATA:
+                raise MemoryFault(f"MMIO register is read-only: {address:#x}")
+
+    def read_bytes(self, address: int, size: int) -> bytes:
+        if address < MMIO_END or address < 0 or address + size > DMEM_SIZE:
+            raise MemoryFault(f"cached backing read out of range: {address:#x}")
+        return bytes(self.data[address:address + size])
+
+    def write_bytes(self, address: int, payload: bytes) -> None:
+        if address < MMIO_END or address < 0 or address + len(payload) > DMEM_SIZE:
+            raise MemoryFault(f"cached backing write out of range: {address:#x}")
+        self.data[address:address + len(payload)] = payload
+
+    def read(self, address: int, size: int) -> int:
+        self.validate_access(address, size, write=False)
 
         if address < MMIO_END:
             if size == WORD_SIZE and address % WORD_SIZE:
@@ -116,12 +136,7 @@ class Memory:
         return int.from_bytes(self.data[address:address + size], "little")
 
     def write(self, address: int, value: int, size: int) -> None:
-        if size not in (1, WORD_SIZE):
-            raise MemoryFault(f"unsupported write size: {size}")
-        if address < 0 or address + size > DMEM_SIZE:
-            raise MemoryFault(f"data address out of range: {address:#x}")
-        if size == WORD_SIZE and address % WORD_SIZE:
-            raise MemoryFault(f"unaligned word write: {address:#x}")
+        self.validate_access(address, size, write=True)
         value &= (1 << (size * 8)) - 1
 
         if address < MMIO_END:
@@ -179,10 +194,10 @@ class CPU:
 
     def __post_init__(self) -> None:
         if self.cache is None:
-            self.cache = DataCache(self.memory.data)
+            self.cache = DataCache(self.memory)
 
     def _bind_cache_to_memory(self) -> None:
-        self.cache = DataCache(self.memory.data)
+        self.cache = DataCache(self.memory)
 
     def reset(self) -> None:
         if self.cache is not None:
@@ -320,14 +335,25 @@ class CPU:
             else:
                 self._memory_wait = 0
                 if self._memory_is_load:
-                    if not self._memory_cached:
+                    if self._memory_cached:
+                        assert self.cache is not None
+                        access = self.cache.read(self._memory_address, self._memory_size)
+                        self._result = access.value
+                    else:
                         self._result = self.memory.read(
                             self._memory_address, self._memory_size
                         )
                     self.stage = Stage.WRITEBACK
                     self._detail = f"load {self._memory_address:#010x}"
                 else:
-                    if not self._memory_cached:
+                    if self._memory_cached:
+                        assert self.cache is not None
+                        self.cache.write(
+                            self._memory_address,
+                            self._memory_value,
+                            self._memory_size,
+                        )
+                    else:
                         self.memory.write(
                             self._memory_address,
                             self._memory_value,
@@ -410,13 +436,13 @@ class CPU:
             self._memory_address = (a + instr.imm) & WORD_MASK
             self._memory_size = 1 if op is Opcode.LOADB else WORD_SIZE
             self._memory_is_load = True
+            self.memory.validate_access(self._memory_address, self._memory_size)
             self._memory_cached = self._memory_address >= MMIO_END
             if self._memory_cached:
                 assert self.cache is not None
-                access = self.cache.read(self._memory_address, self._memory_size)
-                self._result = access.value
-                self._memory_wait = access.latency
-                self._detail = f"cache {'hit' if access.hit else 'miss'} load {self._memory_address:#010x}"
+                self._memory_wait = self.cache.estimate_latency(
+                    self._memory_address, self._memory_size
+                )
             else:
                 self._memory_wait = 1
             self.stage = Stage.MEMORY
@@ -427,14 +453,15 @@ class CPU:
             self._memory_value = b
             self._memory_size = 1 if op is Opcode.STOREB else WORD_SIZE
             self._memory_is_load = False
+            self.memory.validate_access(
+                self._memory_address, self._memory_size, write=True
+            )
             self._memory_cached = self._memory_address >= MMIO_END
             if self._memory_cached:
                 assert self.cache is not None
-                access = self.cache.write(
-                    self._memory_address, self._memory_value, self._memory_size
+                self._memory_wait = self.cache.estimate_latency(
+                    self._memory_address, self._memory_size
                 )
-                self._memory_wait = access.latency
-                self._detail = f"cache {'hit' if access.hit else 'miss'} store {self._memory_address:#010x}"
             else:
                 self._memory_wait = 1
             self.stage = Stage.MEMORY

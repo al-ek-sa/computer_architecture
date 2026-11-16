@@ -66,11 +66,23 @@ class DataCache:
             for _ in range(self.line_count)
         ]
 
+    def _address_limit(self) -> int:
+        if isinstance(self.memory, bytearray):
+            return len(self.memory)
+        data = getattr(self.memory, "data", None)
+        if isinstance(data, bytearray):
+            return len(data)
+        return 1 << 32
+
     def _check_range(self, address: int, size: int) -> None:
         if size not in (1, 2, 4):
             raise MemoryFault(f"unsupported cached access size: {size}")
-        if address < 0 or address + size > (1 << 32):
-            raise MemoryFault(f"cache address range out of range: {address:#x}")
+        limit = self._address_limit()
+        if address < 0 or address + size > limit:
+            raise MemoryFault(
+                f"cache address range [{address:#x}, {address + size:#x}) "
+                f"out of range for backing memory [0x0, {limit:#x})"
+            )
 
     def _backing_read(self, address: int, size: int) -> bytes:
         if isinstance(self.memory, bytearray):
@@ -101,7 +113,7 @@ class DataCache:
         tag = block // self.line_count
         return block, index, tag, offset
 
-    def _writeback(self, index: int) -> None:
+    def _writeback(self, index: int) -> bool:
         line = self.lines[index]
         if line.valid and line.dirty:
             old_block = line.tag * self.line_count + index
@@ -109,15 +121,18 @@ class DataCache:
             self.stats.writebacks += 1
             line.dirty = False
             self.log.append(f"WRITEBACK index={index}")
+            return True
+        return False
 
-    def _load_line(self, block: int, index: int, tag: int) -> None:
+    def _load_line(self, block: int, index: int, tag: int) -> bool:
         line = self.lines[index]
-        self._writeback(index)
+        wrote_back = self._writeback(index)
         base = block * self.line_size
         line.data[:] = self._backing_read(base, self.line_size)
         line.tag = tag
         line.valid = True
         line.dirty = False
+        return wrote_back
 
     def _access_chunk(self, address: int, payload: bytes | None, size: int) -> tuple[bytes, bool, int]:
         block, index, tag, offset = self._parts(address)
@@ -129,7 +144,7 @@ class DataCache:
         else:
             self.stats.misses += 1
             self.log.append(f"MISS address={address:#010x}")
-            self._load_line(block, index, tag)
+            wrote_back = self._load_line(block, index, tag)
 
         if payload is None:
             result = bytes(line.data[offset:offset + size])
@@ -137,7 +152,30 @@ class DataCache:
             line.data[offset:offset + size] = payload
             line.dirty = True
             result = b""
-        return result, hit, self.hit_latency if hit else self.memory_latency
+        latency = self.hit_latency if hit else self.memory_latency
+        if not hit and wrote_back:
+            latency += self.memory_latency
+        return result, hit, latency
+
+    def estimate_latency(self, address: int, size: int) -> int:
+        self._check_range(address, size)
+        remaining = size
+        cursor = address
+        total = 0
+        while remaining:
+            offset = cursor % self.line_size
+            count = min(remaining, self.line_size - offset)
+            block, index, tag, _ = self._parts(cursor)
+            line = self.lines[index]
+            if line.valid and line.tag == tag:
+                total += self.hit_latency
+            else:
+                total += self.memory_latency
+                if line.valid and line.dirty:
+                    total += self.memory_latency
+            cursor += count
+            remaining -= count
+        return total
 
     def read(self, address: int, size: int = 4) -> CacheAccess:
         self._check_range(address, size)
