@@ -129,6 +129,22 @@ class SparseDataMemory:
         for address, payload in segments:
             self.write_bytes(address, payload)
 
+    def __getitem__(self, key: slice) -> bytes:
+        if not isinstance(key, slice) or key.step not in (None, 1):
+            raise TypeError("sparse memory supports only contiguous slices")
+        if key.start is None or key.stop is None:
+            raise TypeError("sparse memory slices require explicit bounds")
+        return self.read_bytes(key.start, key.stop - key.start)
+
+    def __setitem__(self, key: slice, payload: bytes) -> None:
+        if not isinstance(key, slice) or key.step not in (None, 1):
+            raise TypeError("sparse memory supports only contiguous slices")
+        if key.start is None or key.stop is None:
+            raise TypeError("sparse memory slices require explicit bounds")
+        if key.stop - key.start != len(payload):
+            raise ValueError("sparse memory slice assignment cannot resize memory")
+        self.write_bytes(key.start, payload)
+
     def allocated_pages(self) -> int:
         return len(self._pages)
 

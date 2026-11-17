@@ -65,7 +65,8 @@ def parse_input_schedule(value: Any) -> list[tuple[int, bytes]]:
         for index, item in enumerate(value):
             if not isinstance(item, dict) or "cycle" not in item:
                 raise GoldenTestError(
-                    f"input schedule item #{index + 1} must be a mapping with a cycle field"
+                    f"input schedule item #{index + 1} must be a mapping "
+                    "with a cycle field"
                 )
             events.append((int(item["cycle"]), _input_bytes(item.get("data", ""))))
     elif isinstance(value, str):
@@ -109,7 +110,7 @@ def render_trace(trace: list[Any], *, limit: int | None = None) -> str:
         current = tuple(entry.registers)
         changes: list[str] = []
         if previous is not None:
-            for index, (old, value) in enumerate(zip(previous, current)):
+            for index, (old, value) in enumerate(zip(previous, current, strict=True)):
                 if old != value:
                     changes.append(f"R{index}=0x{value & 0xFFFFFFFF:08X}")
 
@@ -294,7 +295,8 @@ def run_test(
     )
     if not any(field in doc for field in expected_fields):
         return [
-            "no expected golden outputs found; run once with --update, inspect, then commit the YAML"
+            "no expected golden outputs found; run once with --update, "
+            "inspect, then commit the YAML"
         ]
 
     failures: list[str] = []
@@ -369,7 +371,8 @@ def main(argv: list[str] | None = None) -> int:
         "--trace-limit",
         type=int,
         default=200,
-        help="maximum number of completed instructions to print with --trace (default: 200)",
+        help=("maximum number of completed instructions to print with "
+              "--trace (default: 200)"),
     )
     args = parser.parse_args(argv)
     if not args.tests:

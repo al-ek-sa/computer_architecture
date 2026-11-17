@@ -180,7 +180,8 @@ def place_modules(
                 address = cursor if requested is None else requested
                 if section == TEXT and address % WORD_SIZE:
                     raise LinkError(
-                        f"{module_name}: text fragment address {address:#x} is unaligned"
+                        f"{module_name}: text fragment address "
+                        f"{address:#x} is unaligned"
                     )
                 placed[(module_index, section, fragment_index)] = PlacedFragment(
                     module_index,
@@ -320,7 +321,8 @@ def _find_fragment(
         return placed[(module_index, section, fragment_index)]
     except KeyError:
         raise LinkError(
-            f"relocation refers to missing fragment {module_index}:{section}:{fragment_index}"
+            "relocation refers to missing fragment "
+            f"{module_index}:{section}:{fragment_index}"
         ) from None
 
 
@@ -375,7 +377,8 @@ def _patch_instruction(
             Opcode.STOREB,
         }:
             raise LinkError(
-                f"absolute 18-bit relocation is not valid for {instruction.opcode.mnemonic}"
+                "absolute 18-bit relocation is not valid for "
+                f"{instruction.opcode.mnemonic}"
             )
         instruction = Instruction(
             instruction.opcode,

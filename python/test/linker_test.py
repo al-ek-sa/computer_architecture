@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from main.isa import Instruction, Opcode, decode, encode
 from main.linker import (
@@ -15,7 +17,7 @@ from main.linker import (
 from main.translator import AsmError, translate
 
 
-def assemble(source: str, name: str = "module.s") -> dict[str, object]:
+def assemble(source: str, name: str = "module.s") -> dict[str, Any]:
     return translate(source, name)
 
 

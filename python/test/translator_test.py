@@ -1,9 +1,11 @@
+from typing import Any
+
 import pytest
 from main.isa import Opcode, decode
 from main.translator import AsmError, translate
 
 
-def section_bytes(module: dict, section: str) -> bytes:
+def section_bytes(module: dict[str, Any], section: str) -> bytes:
     fragments = module["sections"][section]
     return b"".join(bytes.fromhex(fragment["data"]) for fragment in fragments)
 

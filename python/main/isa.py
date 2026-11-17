@@ -292,9 +292,8 @@ def _validate_unused(instr: Instruction) -> None:
     elif op == Opcode.LUI:
         if instr.rs1 or instr.rs2:
             raise ISAError("lui uses only rd and immediate")
-    elif op in {Opcode.JMP, Opcode.CALL}:
-        if op == Opcode.JMP and instr.rd:
-            raise ISAError("jmp has no destination register; rd must be R0")
+    elif op == Opcode.JMP and instr.rd:
+        raise ISAError("jmp has no destination register; rd must be R0")
 
 
 # Преобразует объект Instruction в 32-битное машинное слово

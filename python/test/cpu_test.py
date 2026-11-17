@@ -182,12 +182,10 @@ def test_cpu_second_access_to_same_cache_line_takes_one_cycle() -> None:
     )
 
     memory_stage_cycles = []
-    previous_stage = None
     while not cpu.halted:
         entry = cpu.tick()
         if entry.stage == "MEMORY":
             memory_stage_cycles.append(entry.cycle)
-        previous_stage = entry.stage
 
     assert cpu.registers[1] == 11
     assert cpu.registers[2] == 22

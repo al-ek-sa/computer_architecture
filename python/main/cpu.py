@@ -4,52 +4,29 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 
-try:
-    from .cache import DataCache
-    from .isa import (
-        CYCLE_COUNTER,
-        DMEM_SIZE,
-        IMEM_SIZE,
-        INITIAL_SP,
-        INPUT_DATA,
-        INPUT_STATUS,
-        INPUT_VECTOR,
-        MMIO_END,
-        OUTPUT_DATA,
-        RA_REGISTER,
-        RESET_VECTOR,
-        SP_REGISTER,
-        WORD_MASK,
-        WORD_SIZE,
-        Instruction,
-        Opcode,
-        branch_target,
-        decode,
-    )
-    from .linker import LinkError, from_binary
-except ImportError:
-    from cache import DataCache
-    from isa import (
-        CYCLE_COUNTER,
-        DMEM_SIZE,
-        IMEM_SIZE,
-        INITIAL_SP,
-        INPUT_DATA,
-        INPUT_STATUS,
-        INPUT_VECTOR,
-        MMIO_END,
-        OUTPUT_DATA,
-        RA_REGISTER,
-        RESET_VECTOR,
-        SP_REGISTER,
-        WORD_MASK,
-        WORD_SIZE,
-        Instruction,
-        Opcode,
-        branch_target,
-        decode,
-    )
-    from linker import LinkError, from_binary
+from .cache import DataCache
+from .isa import (
+    CYCLE_COUNTER,
+    DMEM_SIZE,
+    IMEM_SIZE,
+    INITIAL_SP,
+    INPUT_DATA,
+    INPUT_STATUS,
+    INPUT_VECTOR,
+    MMIO_END,
+    OUTPUT_DATA,
+    RA_REGISTER,
+    RESET_VECTOR,
+    SP_REGISTER,
+    WORD_MASK,
+    WORD_SIZE,
+    Instruction,
+    Opcode,
+    branch_target,
+    decode,
+)
+from .linker import LinkError, from_binary
+from .memory import SparseDataMemory
 
 
 class CPUError(RuntimeError):
@@ -94,7 +71,7 @@ class TraceEntry:
 @dataclass(slots=True)
 class Memory:
     instruction: bytearray = field(default_factory=lambda: bytearray(IMEM_SIZE))
-    data: bytearray = field(default_factory=lambda: bytearray(DMEM_SIZE))
+    data: SparseDataMemory = field(default_factory=SparseDataMemory)
     input_byte: int | None = None
     output: bytearray = field(default_factory=bytearray)
     cycle_counter: int = 0
@@ -455,7 +432,10 @@ class CPU:
                 access = self.cache.read(self._memory_address, self._memory_size)
                 self._result = access.value
                 self._memory_wait = access.latency
-                self._detail = f"cache {'hit' if access.hit else 'miss'} load {self._memory_address:#010x}"
+                self._detail = (
+                    f"cache {'hit' if access.hit else 'miss'} load "
+                    f"{self._memory_address:#010x}"
+                )
             else:
                 self._memory_wait = 1
             self.stage = Stage.MEMORY
@@ -473,7 +453,10 @@ class CPU:
                     self._memory_address, self._memory_value, self._memory_size
                 )
                 self._memory_wait = access.latency
-                self._detail = f"cache {'hit' if access.hit else 'miss'} store {self._memory_address:#010x}"
+                self._detail = (
+                    f"cache {'hit' if access.hit else 'miss'} store "
+                    f"{self._memory_address:#010x}"
+                )
             else:
                 self._memory_wait = 1
             self.stage = Stage.MEMORY
