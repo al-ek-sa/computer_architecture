@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from main.isa import Opcode, decode
@@ -11,13 +11,16 @@ def section_bytes(module: dict[str, Any], section: str) -> bytes:
 
 
 def test_translate_basic_instructions() -> None:
-    module = translate("""\
-        .text
-        start:
-            MOVI R1, 42
-            ADDI R2, R1, 1
-            HALT
-    """)
+    module = cast(
+        dict[str, Any],
+        translate("""\
+            .text
+            start:
+                MOVI R1, 42
+                ADDI R2, R1, 1
+                HALT
+        """),
+    )
     code = section_bytes(module, "text")
     words = [int.from_bytes(code[i : i + 4], "little") for i in range(0, len(code), 4)]
     assert [decode(word).opcode for word in words] == [
@@ -29,20 +32,26 @@ def test_translate_basic_instructions() -> None:
 
 
 def test_translate_data_and_null_terminated_string() -> None:
-    module = translate(""".rodata\nmessage:\n.asciz "Hi"\n""")
+    module = cast(
+        dict[str, Any],
+        translate(""".rodata\nmessage:\n.asciz "Hi"\n"""),
+    )
     assert section_bytes(module, "rodata") == b"Hi\\0".replace(b"\\0", b"\0")
     assert module["symbols"]["message"]["section"] == "rodata"
 
 
 def test_translate_export_and_import_relocation() -> None:
-    module = translate("""\
-        .text
-        .extern external_fn
-        .global entry
-        entry:
-            CALL R15, external_fn
-            HALT
-    """)
+    module = cast(
+        dict[str, Any],
+        translate("""\
+            .text
+            .extern external_fn
+            .global entry
+            entry:
+                CALL R15, external_fn
+                HALT
+        """),
+    )
     assert module["exports"] == ["entry"]
     assert module["imports"] == ["external_fn"]
     assert module["relocations"][0]["symbol"] == "external_fn"
