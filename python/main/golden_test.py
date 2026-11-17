@@ -371,8 +371,10 @@ def main(argv: list[str] | None = None) -> int:
         "--trace-limit",
         type=int,
         default=200,
-        help=("maximum number of completed instructions to print with "
-              "--trace (default: 200)"),
+        help=(
+            "maximum number of completed instructions to print with "
+            "--trace (default: 200)"
+        ),
     )
     args = parser.parse_args(argv)
     if not args.tests:

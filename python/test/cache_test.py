@@ -101,7 +101,7 @@ def test_cache_access_out_of_32_bit_range_fails(cache: DataCache) -> None:
 
 
 def test_cross_line_read_combines_bytes_from_both_lines(
-    memory: SparseDataMemory
+    memory: SparseDataMemory,
 ) -> None:
     cache = DataCache(memory=memory, line_size=4, line_count=2)
     access = cache.read(0x1003, 2)
@@ -111,7 +111,7 @@ def test_cross_line_read_combines_bytes_from_both_lines(
 
 
 def test_cross_line_write_updates_both_cache_lines_and_flushes(
-    memory: SparseDataMemory
+    memory: SparseDataMemory,
 ) -> None:
     cache = DataCache(memory=memory, line_size=4, line_count=2)
     access = cache.write(0x1003, 0xBBAA, 2)
@@ -123,7 +123,7 @@ def test_cross_line_write_updates_both_cache_lines_and_flushes(
 
 
 def test_discard_invalidate_does_not_write_back_dirty_line(
-    memory: SparseDataMemory
+    memory: SparseDataMemory,
 ) -> None:
     cache = DataCache(memory=memory, line_size=16, line_count=2)
     cache.write(0x1000, 0xDEADBEEF, 4)
