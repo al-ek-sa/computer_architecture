@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
 
@@ -479,10 +480,7 @@ def disassemble(instr: Instruction, address: int = 0) -> str:
         Opcode.SLT,
         Opcode.SLTU,
     }:
-        if op == Opcode.NOT:
-            operands = f"{rd}, {rs1}"
-        else:
-            operands = f"{rd}, {rs1}, {rs2}"
+        operands = f"{rd}, {rs1}, {rs2}"
     elif op == Opcode.NOT:
         operands = f"{rd}, {rs1}"
     elif op == Opcode.MOVI:
@@ -523,7 +521,10 @@ def instruction_from_bytes(data: bytes) -> Instruction:
 
 
 # Последовательно перебирает инструкции, содержащиеся в бинарном образе
-def iter_instructions(data: bytes, start_address: int = 0):
+def iter_instructions(
+    data: bytes,
+    start_address: int = 0,
+) -> Iterator[tuple[int, Instruction]]:
     if len(data) % WORD_SIZE:
         raise ISAError("instruction memory image size is not a multiple of 4")
     for offset in range(0, len(data), WORD_SIZE):

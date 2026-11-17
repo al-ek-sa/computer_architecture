@@ -3,36 +3,22 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
-try:
-    from .isa import (
-        FORMATS,
-        REGISTER_INDEX,
-        WORD_MASK,
-        WORD_SIZE,
-        Format,
-        Instruction,
-        Opcode,
-        encode,
-        lower,
-        upper,
-    )
-except ImportError:
-    from isa import (
-        FORMATS,
-        REGISTER_INDEX,
-        WORD_MASK,
-        WORD_SIZE,
-        Format,
-        Instruction,
-        Opcode,
-        encode,
-        lower,
-        upper,
-    )
+from .isa import (
+    FORMATS,
+    REGISTER_INDEX,
+    WORD_MASK,
+    WORD_SIZE,
+    Format,
+    Instruction,
+    Opcode,
+    encode,
+    lower,
+    upper,
+)
 
 TEXT = "text"
 RODATA = "rodata"
@@ -107,7 +93,7 @@ class SourceLine:
     text: str
 
 
-def _unquoted_positions(text: str):
+def _unquoted_positions(text: str) -> Iterator[tuple[int, str]]:
     quote = ""
     escaped = False
     for index, char in enumerate(text):
@@ -225,9 +211,8 @@ class Assembler:
         )
 
     def emit(self, data: bytes) -> None:
-        if self.section == BSS:
-            if any(data):
-                raise AsmError("initialized data is not allowed in .bss")
+        if self.section == BSS and any(data):
+            raise AsmError("initialized data is not allowed in .bss")
         self.current().data.extend(data)
 
     def define(self, name: str) -> None:

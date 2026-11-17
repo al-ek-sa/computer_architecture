@@ -433,9 +433,17 @@ def apply_relocations(
             fragment_index = relocation.get("fragment")
             offset = relocation.get("offset")
             kind = relocation.get("kind")
-            fragment = _find_fragment(module_index, section, fragment_index, placed)
-            if not isinstance(offset, int):
+
+            if not isinstance(section, str):
+                raise LinkError("relocation section must be a string")
+            if not isinstance(fragment_index, int) or isinstance(fragment_index, bool):
+                raise LinkError("relocation fragment index must be an integer")
+            if not isinstance(offset, int) or isinstance(offset, bool):
                 raise LinkError("relocation offset must be an integer")
+            if not isinstance(kind, str):
+                raise LinkError("relocation kind must be a string")
+
+            fragment = _find_fragment(module_index, section, fragment_index, placed)
 
             if kind == "word32":
                 if offset % WORD_SIZE:
