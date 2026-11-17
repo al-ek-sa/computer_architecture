@@ -1,5 +1,4 @@
 import pytest
-
 from main.isa import (
     FORMATS,
     REGISTER_INDEX,
@@ -79,9 +78,7 @@ def test_known_machine_encodings(instr: Instruction, word: int) -> None:
 
 
 def test_register_numbers_and_aliases() -> None:
-    assert [REGISTER_INDEX[f"r{i}"] for i in (0, 5, 10, 14, 15)] == [
-        0, 5, 10, 14, 15
-    ]
+    assert [REGISTER_INDEX[f"r{i}"] for i in (0, 5, 10, 14, 15)] == [0, 5, 10, 14, 15]
     assert REGISTER_INDEX["zero"] == 0
     assert REGISTER_INDEX["sp"] == 14
     assert REGISTER_INDEX["ra"] == 15
@@ -163,6 +160,7 @@ def test_disassemble_not() -> None:
 def test_disassemble_halt() -> None:
     assert disassemble(Instruction(Opcode.HALT)) == "halt"
 
+
 @pytest.mark.parametrize(
     "instruction",
     [
@@ -183,35 +181,35 @@ def test_disassemble_halt() -> None:
         Instruction(Opcode.HALT),
     ],
 )
-def test_additional_encode_decode_boundaries(instruction):
+def test_additional_encode_decode_boundaries(instruction: Instruction) -> None:
     assert decode(encode(instruction)) == instruction
 
 
 @pytest.mark.parametrize("value", [-(1 << 17) - 1, 1 << 17])
-def test_signed_immediate_rejects_both_overflow_directions(value):
+def test_signed_immediate_rejects_both_overflow_directions(value: int) -> None:
     with pytest.raises(ValueError):
         encode(Instruction(Opcode.ADDI, rd=1, rs1=2, imm=value))
 
 
 @pytest.mark.parametrize("value", [-1, 1 << 18])
-def test_ori_rejects_both_unsigned_overflow_directions(value):
+def test_ori_rejects_both_unsigned_overflow_directions(value: int) -> None:
     with pytest.raises(ValueError):
         encode(Instruction(Opcode.ORI, rd=1, rs1=2, imm=value))
 
 
 @pytest.mark.parametrize("value", [-(1 << 21) - 4, 1 << 21])
-def test_jump_rejects_displacement_overflow(value):
+def test_jump_rejects_displacement_overflow(value: int) -> None:
     with pytest.raises(ValueError):
         encode(Instruction(Opcode.JMP, imm=value))
 
 
-def test_decode_rejects_nonzero_reserved_bits_for_register_instruction():
+def test_decode_rejects_nonzero_reserved_bits_for_register_instruction() -> None:
     word = encode(Instruction(Opcode.ADD, rd=1, rs1=2, rs2=3))
     with pytest.raises(ValueError, match="reserved bits"):
         decode(word | 0x1)
 
 
-def test_decode_rejects_nonzero_reserved_bits_for_lui():
+def test_decode_rejects_nonzero_reserved_bits_for_lui() -> None:
     word = encode(Instruction(Opcode.LUI, rd=1, imm=0x123))
     with pytest.raises(ValueError, match="reserved bits"):
         decode(word | 0x1)
@@ -229,19 +227,19 @@ def test_decode_rejects_nonzero_reserved_bits_for_lui():
         Instruction(Opcode.JMP, rd=1, imm=4),
     ],
 )
-def test_encoder_rejects_forbidden_operands(instruction):
+def test_encoder_rejects_forbidden_operands(instruction: Instruction) -> None:
     with pytest.raises(ValueError):
         encode(instruction)
 
 
-def test_branch_target_wraps_to_32_bits():
+def test_branch_target_wraps_to_32_bits() -> None:
     from main.isa import branch_target
 
     instruction = Instruction(Opcode.JMP, imm=4)
     assert branch_target(0xFFFF_FFFC, instruction) == 4
 
 
-def test_instruction_byte_order_is_little_endian():
+def test_instruction_byte_order_is_little_endian() -> None:
     from main.isa import instruction_from_bytes, instruction_to_bytes
 
     instruction = Instruction(Opcode.ADDI, rd=1, rs1=2, imm=1)
@@ -250,14 +248,14 @@ def test_instruction_byte_order_is_little_endian():
     assert instruction_from_bytes(raw) == instruction
 
 
-def test_instruction_from_bytes_rejects_wrong_size():
+def test_instruction_from_bytes_rejects_wrong_size() -> None:
     from main.isa import instruction_from_bytes
 
     with pytest.raises(ValueError, match="exactly 4 bytes"):
         instruction_from_bytes(b"\x00\x00\x00")
 
 
-def test_iter_instructions_reports_sequential_addresses():
+def test_iter_instructions_reports_sequential_addresses() -> None:
     from main.isa import instruction_to_bytes, iter_instructions
 
     first = Instruction(Opcode.NOP)
@@ -269,7 +267,7 @@ def test_iter_instructions_reports_sequential_addresses():
     ]
 
 
-def test_iter_instructions_rejects_partial_instruction():
+def test_iter_instructions_rejects_partial_instruction() -> None:
     from main.isa import iter_instructions
 
     with pytest.raises(ValueError, match="multiple of 4"):
