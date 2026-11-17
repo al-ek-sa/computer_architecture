@@ -61,9 +61,7 @@ class DataCache:
 
     def __post_init__(self) -> None:
         if self.line_size < 4 or self.line_size & (self.line_size - 1):
-            raise ValueError(
-                "line_size must be a power of two and at least 4"
-            )
+            raise ValueError("line_size must be a power of two and at least 4")
 
         if self.line_size > MMIO_END or MMIO_END % self.line_size != 0:
             raise ValueError(
@@ -76,8 +74,7 @@ class DataCache:
         if self.hit_latency <= 0 or self.memory_latency <= 0:
             raise ValueError("cache latencies must be positive")
         self.lines = [
-            CacheLine(data=bytearray(self.line_size))
-            for _ in range(self.line_count)
+            CacheLine(data=bytearray(self.line_size)) for _ in range(self.line_count)
         ]
 
     @property
@@ -91,31 +88,24 @@ class DataCache:
 
     def _check_range(self, address: int, size: int) -> None:
         if size not in (1, 2, 4):
-            raise MemoryFault(
-                f"unsupported cached access size: {size}"
-            )
+            raise MemoryFault(f"unsupported cached access size: {size}")
 
         end = address + size
 
         if address < 0 or end > self.address_limit:
             raise MemoryFault(
-                f"cache address range [{address:#x}, {end:#x}) "
-                f"out of range"
+                f"cache address range [{address:#x}, {end:#x}) out of range"
             )
 
         if address < MMIO_END:
-            raise MemoryFault(
-                "MMIO accesses must bypass Data Cache"
-            )
+            raise MemoryFault("MMIO accesses must bypass Data Cache")
 
     def _parts(
         self,
         address: int,
     ) -> tuple[int, int, int, int]:
         if not 0 <= address < (1 << 32):
-            raise MemoryFault(
-                f"cache address out of range: {address:#x}"
-            )
+            raise MemoryFault(f"cache address out of range: {address:#x}")
 
         block, offset = divmod(address, self.line_size)
         index = block % self.line_count
@@ -127,9 +117,7 @@ class DataCache:
             end = address + size
 
             if end > len(self.memory):
-                raise MemoryFault(
-                    f"backing memory read out of range: {address:#x}"
-                )
+                raise MemoryFault(f"backing memory read out of range: {address:#x}")
 
             return bytes(self.memory[address:end])
 
@@ -137,8 +125,7 @@ class DataCache:
 
         if len(payload) != size:
             raise MemoryFault(
-                f"backing memory returned {len(payload)} bytes, "
-                f"expected {size}"
+                f"backing memory returned {len(payload)} bytes, expected {size}"
             )
 
         return payload
@@ -152,9 +139,7 @@ class DataCache:
             end = address + len(payload)
 
             if end > len(self.memory):
-                raise MemoryFault(
-                    f"backing memory write out of range: {address:#x}"
-                )
+                raise MemoryFault(f"backing memory write out of range: {address:#x}")
 
             self.memory[address:end] = payload
             return
@@ -174,9 +159,7 @@ class DataCache:
         line.dirty = False
         self.stats.writebacks += 1
 
-        self.log.append(
-            f"WRITEBACK index={index} address={old_address:#010x}"
-        )
+        self.log.append(f"WRITEBACK index={index} address={old_address:#010x}")
 
         return True
 
@@ -199,9 +182,7 @@ class DataCache:
         line.tag = tag
         line.valid = True
         line.dirty = False
-        self.log.append(
-            f"FILL index={index} address={base_address:#010x}"
-        )
+        self.log.append(f"FILL index={index} address={base_address:#010x}")
         return wrote_back
 
     def _access_chunk(
@@ -228,17 +209,13 @@ class DataCache:
             )
 
         if payload is None:
-            result = bytes(line.data[offset:offset + size])
+            result = bytes(line.data[offset : offset + size])
         else:
-            line.data[offset:offset + size] = payload
+            line.data[offset : offset + size] = payload
             line.dirty = True
             result = b""
 
-        latency = (
-            self.hit_latency
-            if hit
-            else self.memory_latency
-        )
+        latency = self.hit_latency if hit else self.memory_latency
 
         if wrote_back:
             latency += self.memory_latency
@@ -333,7 +310,7 @@ class DataCache:
 
             _, hit, latency = self._access_chunk(
                 cursor,
-                payload[source_offset:source_offset + count],
+                payload[source_offset : source_offset + count],
                 count,
             )
             all_hits &= hit

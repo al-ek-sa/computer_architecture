@@ -1,5 +1,4 @@
 import pytest
-
 from main.cache import DataCache
 from main.memory import MemoryFault, SparseDataMemory
 

@@ -1,5 +1,4 @@
 import pytest
-
 from main.memory import (
     HarvardMemory,
     InstructionMemory,
@@ -84,10 +83,12 @@ def test_program_segments_cannot_overwrite_mmio():
 
 def test_harvard_memory_loads_instruction_and_data_segments():
     memory = HarvardMemory()
-    memory.load_segments({
-        "text": [(0x0C, b"CODE")],
-        "data": [(0x2000, b"DATA")],
-    })
+    memory.load_segments(
+        {
+            "text": [(0x0C, b"CODE")],
+            "data": [(0x2000, b"DATA")],
+        }
+    )
     assert memory.instruction.read(0x0C, 4) == b"CODE"
     assert memory.data.read_bytes(0x2000, 4) == b"DATA"
 
@@ -95,10 +96,12 @@ def test_harvard_memory_loads_instruction_and_data_segments():
 def test_harvard_memory_allows_same_address_in_both_spaces():
     memory = HarvardMemory()
 
-    memory.load_segments({
-        "text": [(0x100, b"CODE")],
-        "data": [(0x100, b"DATA")],
-    })
+    memory.load_segments(
+        {
+            "text": [(0x100, b"CODE")],
+            "data": [(0x100, b"DATA")],
+        }
+    )
 
     assert memory.instruction.read(0x100, 4) == b"CODE"
     assert memory.data.read_bytes(0x100, 4) == b"DATA"
@@ -107,10 +110,12 @@ def test_harvard_memory_allows_same_address_in_both_spaces():
 def test_harvard_memory_data_write_does_not_modify_instruction_memory():
     memory = HarvardMemory()
 
-    memory.load_segments({
-        "text": [(0x100, b"CODE")],
-        "data": [(0x100, b"DATA")],
-    })
+    memory.load_segments(
+        {
+            "text": [(0x100, b"CODE")],
+            "data": [(0x100, b"DATA")],
+        }
+    )
 
     memory.data.write_bytes(0x100, b"TEST")
 
@@ -121,10 +126,12 @@ def test_harvard_memory_data_write_does_not_modify_instruction_memory():
 def test_harvard_memory_instruction_fetch_is_independent_of_data_memory():
     memory = HarvardMemory()
 
-    memory.load_segments({
-        "text": [(0x100, bytes.fromhex("00000000"))],
-        "data": [(0x100, b"DATA")],
-    })
+    memory.load_segments(
+        {
+            "text": [(0x100, bytes.fromhex("00000000"))],
+            "data": [(0x100, b"DATA")],
+        }
+    )
 
     assert memory.instruction.fetch_word(0x100) == 0
     assert memory.data.read_bytes(0x100, 4) == b"DATA"

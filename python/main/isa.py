@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+
 # Все прописанные константы описаны в документации в директории docs, подробнее можно прочитать там
 
 # Размер машинного слова в байтах (лимитировано и прописасано в .md)
@@ -71,13 +72,14 @@ ZERO_REGISTER = 0
 SP_REGISTER = 14
 # Номер регистра R15
 RA_REGISTER = 15
-#Генерация имен от r0 до r15 + индексация регистров от х0 до х15 и инициалицазия специальных регистров
+# Генерация имен от r0 до r15 + индексация регистров от х0 до х15 и инициалицазия специальных регистров
 REGISTERS = tuple(f"R{i}" for i in range(REGISTER_COUNT))
 REGISTER_INDEX = {
     **{name.lower(): index for index, name in enumerate(REGISTERS)},
     **{f"x{index}": index for index in range(REGISTER_COUNT)},
 }
 REGISTER_INDEX.update({"zero": 0, "sp": 14, "ra": 15})
+
 
 class Opcode(Enum):
     # полная документация прописана в ../docs/isa.md ьам прописана логика проставления кода операций
@@ -214,6 +216,7 @@ JUMP_DISPLACEMENT_BITS = 22
 # Количество бит для непосредственного значения в инструкции загрузки старшей части константы (формат U)
 UPPER_IMMEDIATE_BITS = 14
 
+
 # Исключение при обнаружении некорректной инструкции
 class ISAError(ValueError):
     """Invalid instruction or instruction encoding."""
@@ -317,9 +320,7 @@ def encode(instr: Instruction) -> int:
             )
         # Остальные инструкции формата I используют знаковое значение
         else:
-            immediate = _check_signed(
-                instr.imm, SIGNED_IMMEDIATE_BITS, "immediate"
-            )
+            immediate = _check_signed(instr.imm, SIGNED_IMMEDIATE_BITS, "immediate")
         # Записываем регистр назначения в биты 22–25
         word |= instr.rd << 22
         # Записываем первый регистр-операнд в биты 18–21
@@ -341,9 +342,7 @@ def encode(instr: Instruction) -> int:
     # Кодирование инструкций формата B
     elif fmt is Format.BRANCH:
         # Проверяем смещение условного перехода (должно быть выровнено и помещаться в 18 знаковых бит)
-        displacement = _check_displacement(
-            instr.imm, BRANCH_DISPLACEMENT_BITS
-        )
+        displacement = _check_displacement(instr.imm, BRANCH_DISPLACEMENT_BITS)
         # Записываем первый регистр для сравнения
         word |= instr.rs1 << 22
         # Записываем второй регистр для сравнения
@@ -354,9 +353,7 @@ def encode(instr: Instruction) -> int:
     # Кодирование инструкций формата J
     elif fmt is Format.JUMP:
         # Проверяем смещение безусловного перехода или вызова
-        displacement = _check_displacement(
-            instr.imm, JUMP_DISPLACEMENT_BITS
-        )
+        displacement = _check_displacement(instr.imm, JUMP_DISPLACEMENT_BITS)
         # Записываем регистр назначения
         word |= instr.rd << 22
         # Записываем 22-битное смещение перехода
@@ -365,9 +362,7 @@ def encode(instr: Instruction) -> int:
     # Кодирование инструкций формата U
     elif fmt is Format.UPPER:
         # Проверяем, что непосредственное значение помещается в 14 беззнаковых бит
-        immediate = _check_unsigned(
-            instr.imm, UPPER_IMMEDIATE_BITS, "LUI immediate"
-        )
+        immediate = _check_unsigned(instr.imm, UPPER_IMMEDIATE_BITS, "LUI immediate")
         # Записываем регистр назначения
         word |= instr.rd << 22
         # Размещаем 14-битное значение в битах 8–21
@@ -411,15 +406,11 @@ def decode(word: int) -> Instruction:
 
     # Декодирование инструкций формата S
     elif fmt is Format.STORE:
-        instr = Instruction(
-            opcode, rs1=rd, rs2=rs1, imm=imm18
-        )
+        instr = Instruction(opcode, rs1=rd, rs2=rs1, imm=imm18)
 
     # Декодирование инструкций формата B
     elif fmt is Format.BRANCH:
-        instr = Instruction(
-            opcode, rs1=rd, rs2=rs1, imm=imm18
-        )
+        instr = Instruction(opcode, rs1=rd, rs2=rs1, imm=imm18)
         if instr.imm % WORD_SIZE:
             raise ISAError("branch displacement is not word-aligned")
 
@@ -475,9 +466,19 @@ def disassemble(instr: Instruction, address: int = 0) -> str:
 
     if op in {Opcode.NOP, Opcode.RET, Opcode.IRET, Opcode.HALT}:
         operands = ""
-    elif op in {Opcode.ADD, Opcode.SUB, Opcode.MUL, Opcode.DIV,
-                Opcode.AND, Opcode.OR, Opcode.XOR, Opcode.SHL, Opcode.SHR,
-                Opcode.SLT, Opcode.SLTU}:
+    elif op in {
+        Opcode.ADD,
+        Opcode.SUB,
+        Opcode.MUL,
+        Opcode.DIV,
+        Opcode.AND,
+        Opcode.OR,
+        Opcode.XOR,
+        Opcode.SHL,
+        Opcode.SHR,
+        Opcode.SLT,
+        Opcode.SLTU,
+    }:
         if op == Opcode.NOT:
             operands = f"{rd}, {rs1}"
         else:
@@ -526,5 +527,5 @@ def iter_instructions(data: bytes, start_address: int = 0):
     if len(data) % WORD_SIZE:
         raise ISAError("instruction memory image size is not a multiple of 4")
     for offset in range(0, len(data), WORD_SIZE):
-        word = int.from_bytes(data[offset:offset + WORD_SIZE], "little")
+        word = int.from_bytes(data[offset : offset + WORD_SIZE], "little")
         yield start_address + offset, decode(word)

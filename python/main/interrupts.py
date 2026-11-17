@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 WORD_SIZE = 4
 WORD_MASK = 0xFFFF_FFFF
 
@@ -28,9 +27,7 @@ class InterruptController:
             raise InterruptError("interrupt vector address must be an integer")
 
         if not 0 <= address <= WORD_MASK:
-            raise InterruptError(
-                f"interrupt vector address is out of range: {address}"
-            )
+            raise InterruptError(f"interrupt vector address is out of range: {address}")
 
         if address != 0 and address % WORD_SIZE != 0:
             raise InterruptError(

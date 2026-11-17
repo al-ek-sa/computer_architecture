@@ -5,21 +5,51 @@ from enum import Enum, auto
 from pathlib import Path
 
 try:
+    from .cache import DataCache
     from .isa import (
-        CYCLE_COUNTER, DMEM_SIZE, IMEM_SIZE, INITIAL_SP, INPUT_DATA, INPUT_STATUS,
-        INPUT_VECTOR, MMIO_END, OUTPUT_DATA, RA_REGISTER, RESET_VECTOR, SP_REGISTER,
-        WORD_MASK, WORD_SIZE, Instruction, Opcode, branch_target, decode,
+        CYCLE_COUNTER,
+        DMEM_SIZE,
+        IMEM_SIZE,
+        INITIAL_SP,
+        INPUT_DATA,
+        INPUT_STATUS,
+        INPUT_VECTOR,
+        MMIO_END,
+        OUTPUT_DATA,
+        RA_REGISTER,
+        RESET_VECTOR,
+        SP_REGISTER,
+        WORD_MASK,
+        WORD_SIZE,
+        Instruction,
+        Opcode,
+        branch_target,
+        decode,
     )
     from .linker import LinkError, from_binary
-    from .cache import DataCache
 except ImportError:
+    from cache import DataCache
     from isa import (
-        CYCLE_COUNTER, DMEM_SIZE, IMEM_SIZE, INITIAL_SP, INPUT_DATA, INPUT_STATUS,
-        INPUT_VECTOR, MMIO_END, OUTPUT_DATA, RA_REGISTER, RESET_VECTOR, SP_REGISTER,
-        WORD_MASK, WORD_SIZE, Instruction, Opcode, branch_target, decode,
+        CYCLE_COUNTER,
+        DMEM_SIZE,
+        IMEM_SIZE,
+        INITIAL_SP,
+        INPUT_DATA,
+        INPUT_STATUS,
+        INPUT_VECTOR,
+        MMIO_END,
+        OUTPUT_DATA,
+        RA_REGISTER,
+        RESET_VECTOR,
+        SP_REGISTER,
+        WORD_MASK,
+        WORD_SIZE,
+        Instruction,
+        Opcode,
+        branch_target,
+        decode,
     )
     from linker import LinkError, from_binary
-    from cache import DataCache
 
 
 class CPUError(RuntimeError):
@@ -57,6 +87,7 @@ class TraceEntry:
     instruction_pc: int
     instruction: str
     registers: tuple[int, ...]
+    in_interrupt: bool
     detail: str = ""
 
 
@@ -87,7 +118,7 @@ class Memory:
             raise MemoryFault(f"unaligned instruction address: {address:#x}")
         if address < 0 or address + WORD_SIZE > IMEM_SIZE:
             raise MemoryFault(f"instruction address out of range: {address:#x}")
-        return int.from_bytes(self.instruction[address:address + WORD_SIZE], "little")
+        return int.from_bytes(self.instruction[address : address + WORD_SIZE], "little")
 
     def read(self, address: int, size: int) -> int:
         if size not in (1, WORD_SIZE):
@@ -114,7 +145,7 @@ class Memory:
                 return int(self.input_byte is not None)
             raise MemoryFault(f"unmapped MMIO read: {address:#x}")
 
-        return int.from_bytes(self.data[address:address + size], "little")
+        return int.from_bytes(self.data[address : address + size], "little")
 
     def write(self, address: int, value: int, size: int) -> None:
         if size not in (1, WORD_SIZE):
@@ -133,7 +164,7 @@ class Memory:
                 raise MemoryFault(f"MMIO register is read-only: {address:#x}")
             raise MemoryFault(f"unmapped MMIO write: {address:#x}")
 
-        self.data[address:address + size] = value.to_bytes(size, "little")
+        self.data[address : address + size] = value.to_bytes(size, "little")
 
     def inject_input(self, value: int) -> None:
         if self.input_byte is not None:
@@ -295,9 +326,12 @@ class CPU:
             self._instruction.opcode.mnemonic if self._instruction is not None else ""
         )
 
+        trace_in_interrupt = self.in_interrupt
+
         if self.stage is Stage.FETCH:
             if self.pending_interrupt and not self.in_interrupt:
                 self._take_interrupt()
+            trace_in_interrupt = self.in_interrupt
             self.ir = self.memory.fetch_word(self.pc)
             self.stage = Stage.DECODE
 
@@ -305,7 +339,9 @@ class CPU:
             try:
                 self._instruction = decode(self.ir)
             except ValueError as error:
-                raise CPUError(f"invalid instruction at {self.pc:#010x}: {error}") from None
+                raise CPUError(
+                    f"invalid instruction at {self.pc:#010x}: {error}"
+                ) from None
             instr = self._instruction
             self._operands = (self.registers[instr.rs1], self.registers[instr.rs2])
             self._next_pc = (self.pc + WORD_SIZE) & WORD_MASK
@@ -354,10 +390,10 @@ class CPU:
             stage=self.stage.name,
             pc=self.pc,
             instruction_pc=instruction_pc,
-            instruction=instruction_name or (
-                self._instruction.opcode.mnemonic if self._instruction else ""
-            ),
+            instruction=instruction_name
+            or (self._instruction.opcode.mnemonic if self._instruction else ""),
             registers=tuple(self.registers),
+            in_interrupt=trace_in_interrupt,
             detail=self._detail,
         )
         self.trace.append(entry)
@@ -499,7 +535,10 @@ class CPU:
         return self.memory.output.decode("utf-8", errors="replace")
 
     def dump_registers(self) -> str:
-        return "\n".join(
-            f"R{index:02d} = 0x{value:08X}"
-            for index, value in enumerate(self.registers)
-        ) + f"\nPC  = 0x{self.pc:08X}\nEPC = 0x{self.epc:08X}\n"
+        return (
+            "\n".join(
+                f"R{index:02d} = 0x{value:08X}"
+                for index, value in enumerate(self.registers)
+            )
+            + f"\nPC  = 0x{self.pc:08X}\nEPC = 0x{self.epc:08X}\n"
+        )

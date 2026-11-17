@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
 
 from .isa import DMEM_SIZE, IMEM_SIZE, MMIO_END, WORD_SIZE
 
@@ -41,12 +41,12 @@ class InstructionMemory:
             raise MemoryFault(f"unaligned instruction address: {address:#x}")
         if address + WORD_SIZE > self.size:
             raise MemoryFault(f"instruction address out of range: {address:#x}")
-        return int.from_bytes(self._bytes[address:address + WORD_SIZE], "little")
+        return int.from_bytes(self._bytes[address : address + WORD_SIZE], "little")
 
     def read(self, address: int, size: int) -> bytes:
         if address < 0 or size < 0 or address + size > self.size:
             raise MemoryFault("instruction memory read out of range")
-        return bytes(self._bytes[address:address + size])
+        return bytes(self._bytes[address : address + size])
 
 
 @dataclass(slots=True)
@@ -69,7 +69,9 @@ class SparseDataMemory:
     def page_size(self) -> int:
         return 1 << self.page_bits
 
-    def _check_range(self, address: int, size: int, *, allow_mmio: bool = False) -> None:
+    def _check_range(
+        self, address: int, size: int, *, allow_mmio: bool = False
+    ) -> None:
         end = address + size
         if size < 0 or address < 0 or end > self.address_limit:
             raise MemoryFault(
@@ -95,7 +97,7 @@ class SparseDataMemory:
             count = min(size - cursor, self.page_size - offset)
             page = self._page(page_number, create=False)
             if page is not None:
-                result[cursor:cursor + count] = page[offset:offset + count]
+                result[cursor : cursor + count] = page[offset : offset + count]
             cursor += count
         return bytes(result)
 
@@ -108,7 +110,7 @@ class SparseDataMemory:
             count = min(len(payload) - cursor, self.page_size - offset)
             page = self._page(page_number, create=True)
             assert page is not None
-            page[offset:offset + count] = payload[cursor:cursor + count]
+            page[offset : offset + count] = payload[cursor : cursor + count]
             cursor += count
 
     def read(self, address: int, size: int) -> int:

@@ -1,7 +1,6 @@
 import pytest
-
 from main.cpu import CPU, DeviceOverrun, Memory, MemoryFault, Stage
-from main.isa import Instruction, Opcode, WORD_MASK, encode
+from main.isa import WORD_MASK, Instruction, Opcode, encode
 from main.linker import link, to_binary
 from main.translator import translate
 
@@ -49,26 +48,34 @@ def test_reset_vector_and_initial_stack_pointer() -> None:
 
 
 def test_add_and_zero_register_is_constant() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.MOVI, rd=1, imm=7)),
-        encode(Instruction(Opcode.ADD, rd=0, rs1=1, rs2=1)),
-        encode(Instruction(Opcode.ADD, rd=2, rs1=1, rs2=1)),
-        encode(Instruction(Opcode.HALT)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.MOVI, rd=1, imm=7)),
+            encode(Instruction(Opcode.ADD, rd=0, rs1=1, rs2=1)),
+            encode(Instruction(Opcode.ADD, rd=2, rs1=1, rs2=1)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
     cpu.run(100)
     assert cpu.registers[0] == 0
     assert cpu.registers[2] == 14
 
 
 def test_store_and_load_word_from_data_memory() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.MOVI, rd=1, imm=123)),
-        encode(Instruction(Opcode.STORE, rs1=0, rs2=1, imm=0x2000)),
-        encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2000)),
-        encode(Instruction(Opcode.HALT)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.MOVI, rd=1, imm=123)),
+            encode(Instruction(Opcode.STORE, rs1=0, rs2=1, imm=0x2000)),
+            encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2000)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
     cpu.run(100)
     assert cpu.registers[2] == 123
     assert cpu.cache is not None
@@ -78,12 +85,16 @@ def test_store_and_load_word_from_data_memory() -> None:
 
 
 def test_word_memory_access_takes_ten_cycles() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.MOVI, rd=1, imm=9)),
-        encode(Instruction(Opcode.STORE, rs1=0, rs2=1, imm=0x2000)),
-        encode(Instruction(Opcode.HALT)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.MOVI, rd=1, imm=9)),
+            encode(Instruction(Opcode.STORE, rs1=0, rs2=1, imm=0x2000)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
     while cpu.stage is not Stage.MEMORY:
         cpu.tick()
     start = cpu.cycle
@@ -93,24 +104,32 @@ def test_word_memory_access_takes_ten_cycles() -> None:
 
 
 def test_mmio_output_write() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.MOVI, rd=1, imm=ord("X"))),
-        encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
-        encode(Instruction(Opcode.HALT)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.MOVI, rd=1, imm=ord("X"))),
+            encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
     cpu.run(100)
     assert cpu.output_text == "X"
 
 
 def test_input_interrupt_reads_and_echoes_one_byte() -> None:
-    cpu = load_words([
-        0x0C, 0x10, 0,
-        encode(Instruction(Opcode.JMP, imm=-4)),  # wait loop at 0x0C
-        encode(Instruction(Opcode.LOADB, rd=1, rs1=0, imm=0)),
-        encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
-        encode(Instruction(Opcode.IRET)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0x10,
+            0,
+            encode(Instruction(Opcode.JMP, imm=-4)),  # wait loop at 0x0C
+            encode(Instruction(Opcode.LOADB, rd=1, rs1=0, imm=0)),
+            encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
+            encode(Instruction(Opcode.IRET)),
+        ]
+    )
     cpu.schedule_input(3, "Z")
     for _ in range(30):
         cpu.tick()
@@ -148,13 +167,19 @@ def test_halted_cpu_cannot_tick() -> None:
 
 
 def test_cpu_second_access_to_same_cache_line_takes_one_cycle() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
-        encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
-        encode(Instruction(Opcode.HALT)),
-    ])
-    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(4, "little")
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
+            encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
+    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(
+        4, "little"
+    )
 
     memory_stage_cycles = []
     previous_stage = None
@@ -172,12 +197,16 @@ def test_cpu_second_access_to_same_cache_line_takes_one_cycle() -> None:
 
 
 def test_cpu_mmio_access_bypasses_data_cache() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.MOVI, rd=1, imm=ord("K"))),
-        encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
-        encode(Instruction(Opcode.HALT)),
-    ])
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.MOVI, rd=1, imm=ord("K"))),
+            encode(Instruction(Opcode.STOREB, rs1=0, rs2=1, imm=4)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
     cpu.run(100)
     assert cpu.output_text == "K"
     assert cpu.cache is not None
@@ -185,13 +214,19 @@ def test_cpu_mmio_access_bypasses_data_cache() -> None:
 
 
 def test_cpu_cache_miss_and_hit_have_expected_memory_stage_durations() -> None:
-    cpu = load_words([
-        0x0C, 0, 0,
-        encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
-        encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
-        encode(Instruction(Opcode.HALT)),
-    ])
-    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(4, "little")
+    cpu = load_words(
+        [
+            0x0C,
+            0,
+            0,
+            encode(Instruction(Opcode.LOAD, rd=1, rs1=0, imm=0x2000)),
+            encode(Instruction(Opcode.LOAD, rd=2, rs1=0, imm=0x2004)),
+            encode(Instruction(Opcode.HALT)),
+        ]
+    )
+    cpu.memory.data[0x2000:0x2008] = (11).to_bytes(4, "little") + (22).to_bytes(
+        4, "little"
+    )
     durations = []
     current_duration = 0
     was_in_memory = False

@@ -103,7 +103,7 @@ class Program:
         end = max(address + len(data) for address, data in segments)
         image = bytearray(end - base)
         for address, data in segments:
-            image[address - base: address - base + len(data)] = data
+            image[address - base : address - base + len(data)] = data
         return image
 
 
@@ -129,14 +129,18 @@ def _validate_module(module: dict[str, Any], index: int) -> None:
         if not isinstance(fragments, list):
             raise LinkError(f"{module['name']}: section {section} must be a list")
         for fragment in fragments:
-            if not isinstance(fragment, dict) or not isinstance(fragment.get("data"), str):
+            if not isinstance(fragment, dict) or not isinstance(
+                fragment.get("data"), str
+            ):
                 raise LinkError(f"{module['name']}: malformed {section} fragment")
             try:
                 raw = bytes.fromhex(fragment["data"])
             except ValueError:
                 raise LinkError(f"{module['name']}: invalid hex in {section}") from None
             if section == TEXT and len(raw) % WORD_SIZE:
-                raise LinkError(f"{module['name']}: text fragment size is not word-aligned")
+                raise LinkError(
+                    f"{module['name']}: text fragment size is not word-aligned"
+                )
             org = fragment.get("org")
             if org is not None:
                 _as_int(org, f"{module['name']} {section} .org")
@@ -197,9 +201,7 @@ def check_layout(fragments: list[PlacedFragment]) -> None:
     explicit_vector_tables = [
         fragment
         for fragment in fragments
-        if fragment.section == TEXT
-        and fragment.address == 0
-        and fragment.data
+        if fragment.section == TEXT and fragment.address == 0 and fragment.data
     ]
     if len(explicit_vector_tables) > 1:
         raise LinkError("multiple explicit interrupt vector tables")
@@ -215,8 +217,11 @@ def check_layout(fragments: list[PlacedFragment]) -> None:
         low = SECTION_BASES[section]
         high = SECTION_LIMITS[section]
         used = sorted(
-            (fragment for fragment in fragments
-             if fragment.section == section and fragment.data),
+            (
+                fragment
+                for fragment in fragments
+                if fragment.section == section and fragment.data
+            ),
             key=lambda item: (item.address, item.end),
         )
         for fragment in used:
@@ -282,7 +287,9 @@ def resolve_symbols(
 
         for name in module["exports"]:
             if name not in symbols:
-                raise LinkError(f"{module['name']}: exported symbol is undefined: {name}")
+                raise LinkError(
+                    f"{module['name']}: exported symbol is undefined: {name}"
+                )
             if name in exports:
                 raise LinkError(f"duplicate exported symbol: {name}")
             exports[name] = local[(module_index, name)]
@@ -320,7 +327,9 @@ def _find_fragment(
 def _write_word(data: bytearray, offset: int, value: int) -> None:
     if offset < 0 or offset + WORD_SIZE > len(data):
         raise LinkError("relocation writes outside its fragment")
-    data[offset:offset + WORD_SIZE] = (value & WORD_MASK).to_bytes(WORD_SIZE, "little")
+    data[offset : offset + WORD_SIZE] = (value & WORD_MASK).to_bytes(
+        WORD_SIZE, "little"
+    )
 
 
 def _patch_instruction(
@@ -331,7 +340,7 @@ def _patch_instruction(
 ) -> None:
     if offset % WORD_SIZE or offset + WORD_SIZE > len(fragment.data):
         raise LinkError("instruction relocation is not aligned or is out of range")
-    word = int.from_bytes(fragment.data[offset:offset + WORD_SIZE], "little")
+    word = int.from_bytes(fragment.data[offset : offset + WORD_SIZE], "little")
     try:
         instruction = decode(word)
     except ValueError as error:
@@ -339,7 +348,12 @@ def _patch_instruction(
 
     if kind == "pcrel":
         if instruction.opcode not in {
-            Opcode.BEQ, Opcode.BNE, Opcode.BLT, Opcode.BGE, Opcode.JMP, Opcode.CALL
+            Opcode.BEQ,
+            Opcode.BNE,
+            Opcode.BLT,
+            Opcode.BGE,
+            Opcode.JMP,
+            Opcode.CALL,
         }:
             raise LinkError(f"PC-relative relocation on {instruction.opcode.mnemonic}")
         displacement = target - (fragment.address + offset + WORD_SIZE)
@@ -352,8 +366,13 @@ def _patch_instruction(
         )
     elif kind == "abs":
         if instruction.opcode not in {
-            Opcode.MOVI, Opcode.ADDI, Opcode.ORI, Opcode.LOAD, Opcode.LOADB,
-            Opcode.STORE, Opcode.STOREB,
+            Opcode.MOVI,
+            Opcode.ADDI,
+            Opcode.ORI,
+            Opcode.LOAD,
+            Opcode.LOADB,
+            Opcode.STORE,
+            Opcode.STOREB,
         }:
             raise LinkError(
                 f"absolute 18-bit relocation is not valid for {instruction.opcode.mnemonic}"
@@ -386,7 +405,9 @@ def _patch_instruction(
     try:
         _write_word(fragment.data, offset, encode(instruction))
     except ValueError as error:
-        raise LinkError(f"relocation overflow at {fragment.address + offset:#x}: {error}") from None
+        raise LinkError(
+            f"relocation overflow at {fragment.address + offset:#x}: {error}"
+        ) from None
 
 
 def apply_relocations(
@@ -412,9 +433,7 @@ def apply_relocations(
             fragment_index = relocation.get("fragment")
             offset = relocation.get("offset")
             kind = relocation.get("kind")
-            fragment = _find_fragment(
-                module_index, section, fragment_index, placed
-            )
+            fragment = _find_fragment(module_index, section, fragment_index, placed)
             if not isinstance(offset, int):
                 raise LinkError("relocation offset must be an integer")
 
@@ -463,15 +482,14 @@ def _collect_program(
         entry_section, entry_address = start_locations[0]
     else:
         text_fragments = [
-            (address, data)
-            for address, data in sections[TEXT]
-            if address != 0 and data
+            (address, data) for address, data in sections[TEXT] if address != 0 and data
         ]
         if not text_fragments:
             entry_section, entry_address = TEXT, 0
         else:
-            entry_section, entry_address = TEXT, min(
-                address for address, _ in text_fragments
+            entry_section, entry_address = (
+                TEXT,
+                min(address for address, _ in text_fragments),
             )
     if entry_section != TEXT:
         raise LinkError("_start must be in .text")
@@ -506,14 +524,14 @@ def _collect_program(
     if explicit_vector_table is None:
         vector_bytes = bytearray(VECTOR_TABLE_SIZE)
         vector_bytes[0:WORD_SIZE] = entry_address.to_bytes(WORD_SIZE, "little")
-        vector_bytes[WORD_SIZE:2 * WORD_SIZE] = (
-            (input_handler or 0).to_bytes(WORD_SIZE, "little")
+        vector_bytes[WORD_SIZE : 2 * WORD_SIZE] = (input_handler or 0).to_bytes(
+            WORD_SIZE, "little"
         )
         sections[TEXT].append((0, vector_bytes))
         sections[TEXT].sort(key=lambda item: item[0])
     elif input_handler is not None:
-        explicit_vector_table[WORD_SIZE:2 * WORD_SIZE] = (
-            input_handler.to_bytes(WORD_SIZE, "little")
+        explicit_vector_table[WORD_SIZE : 2 * WORD_SIZE] = input_handler.to_bytes(
+            WORD_SIZE, "little"
         )
 
     symbols["$reset_vector"] = (TEXT, 0)
@@ -573,7 +591,7 @@ def from_binary(binary: bytes) -> dict[str, list[tuple[int, bytes]]]:
             raise LinkError(f"unknown section id in segment #{index}")
         if cursor + size > len(binary):
             raise LinkError("truncated CSA4 segment payload")
-        descriptors.append((section_id, address, binary[cursor:cursor + size]))
+        descriptors.append((section_id, address, binary[cursor : cursor + size]))
         cursor += size
     if cursor != len(binary):
         raise LinkError("trailing bytes after CSA4 executable")
@@ -599,7 +617,7 @@ def listing(program: Program) -> str:
             pc = address + offset
             for label in labels_by_section[TEXT].get(pc, []):
                 lines.append(f"{'':18}{label}:")
-            word = int.from_bytes(data[offset:offset + WORD_SIZE], "little")
+            word = int.from_bytes(data[offset : offset + WORD_SIZE], "little")
             try:
                 mnemonic = disassemble(decode(word), pc)
             except ValueError:
@@ -612,14 +630,13 @@ def listing(program: Program) -> str:
         lines.extend(("", f"; {section}"))
         for address, data in program.sections[section]:
             for offset in range(0, len(data), WORD_SIZE):
-                chunk = data[offset:offset + WORD_SIZE]
+                chunk = data[offset : offset + WORD_SIZE]
                 current = address + offset
                 for label in labels_by_section[section].get(current, []):
                     lines.append(f"{'':18}{label}:")
                 hex_bytes = chunk.hex().upper()
                 printable = "".join(
-                    chr(byte) if 0x20 <= byte < 0x7F else "."
-                    for byte in chunk
+                    chr(byte) if 0x20 <= byte < 0x7F else "." for byte in chunk
                 )
                 lines.append(f"{current:08X} - {hex_bytes:<8} - {printable}")
     return "\n".join(lines) + "\n"
@@ -636,7 +653,9 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="CSA4 linker: object modules -> executable")
+    parser = argparse.ArgumentParser(
+        description="CSA4 linker: object modules -> executable"
+    )
     parser.add_argument("objects", nargs="+", type=Path)
     parser.add_argument("-o", "--output", type=Path, default=Path("a.out"))
     parser.add_argument("--listing", type=Path)

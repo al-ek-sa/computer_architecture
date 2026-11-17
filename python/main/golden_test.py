@@ -17,7 +17,9 @@ else:
 try:
     import yaml
 except ImportError as exc:
-    raise SystemExit("PyYAML is required. Install it with: python -m pip install pyyaml") from exc
+    raise SystemExit(
+        "PyYAML is required. Install it with: python -m pip install pyyaml"
+    ) from exc
 
 
 class GoldenTestError(Exception):
@@ -37,7 +39,9 @@ def _input_bytes(value: Any) -> bytes:
         except (TypeError, ValueError) as exc:
             raise GoldenTestError(f"invalid byte array: {value!r}") from exc
     if not isinstance(value, str):
-        raise GoldenTestError(f"input data must be a string or byte array, got {type(value).__name__}")
+        raise GoldenTestError(
+            f"input data must be a string or byte array, got {type(value).__name__}"
+        )
     if value.upper() == "NUL":
         return b"\0"
     if value.startswith("hex:"):
@@ -74,7 +78,9 @@ def parse_input_schedule(value: Any) -> list[tuple[int, bytes]]:
                 raise GoldenTestError(f"invalid input schedule entry: {part!r}")
             events.append((int(match.group(1)), _input_bytes(match.group(2).strip())))
     else:
-        raise GoldenTestError("in_input_schedule must be a list, mapping, or schedule string")
+        raise GoldenTestError(
+            "in_input_schedule must be a list, mapping, or schedule string"
+        )
 
     for cycle, payload in events:
         if cycle < 1:
@@ -134,7 +140,9 @@ def _binary_expected(doc: dict[str, Any]) -> bytes | None:
         try:
             return bytes.fromhex(str(value))
         except ValueError as exc:
-            raise GoldenTestError(f"invalid out_binary_hex/out_code_hex: {exc}") from exc
+            raise GoldenTestError(
+                f"invalid out_binary_hex/out_code_hex: {exc}"
+            ) from exc
 
     legacy = doc.get("out_code")
     if legacy is None:
@@ -155,7 +163,9 @@ def _program_sections(program: Any) -> dict[str, list[dict[str, Any]]]:
 
 
 def _register_snapshot(cpu: CPU) -> dict[str, str]:
-    return {f"R{i}": f"0x{value & 0xFFFFFFFF:08X}" for i, value in enumerate(cpu.registers)}
+    return {
+        f"R{i}": f"0x{value & 0xFFFFFFFF:08X}" for i, value in enumerate(cpu.registers)
+    }
 
 
 def _cache_snapshot(cpu: CPU) -> dict[str, int] | None:
@@ -273,11 +283,19 @@ def run_test(
         return []
 
     expected_fields = (
-        "out_binary_hex", "out_code_hex", "out_code", "out_sections",
-        "out_stdout", "out_registers", "out_cycles", "out_cache",
+        "out_binary_hex",
+        "out_code_hex",
+        "out_code",
+        "out_sections",
+        "out_stdout",
+        "out_registers",
+        "out_cycles",
+        "out_cache",
     )
     if not any(field in doc for field in expected_fields):
-        return ["no expected golden outputs found; run once with --update, inspect, then commit the YAML"]
+        return [
+            "no expected golden outputs found; run once with --update, inspect, then commit the YAML"
+        ]
 
     failures: list[str] = []
     expected_binary = _binary_expected(doc)
@@ -291,18 +309,26 @@ def run_test(
         failures.append("linked sections (machine code/data) differ")
 
     expected_stdout = doc.get("out_stdout")
-    if expected_stdout is not None and stdout.rstrip("\n") != str(expected_stdout).rstrip("\n"):
+    if expected_stdout is not None and stdout.rstrip("\n") != str(
+        expected_stdout
+    ).rstrip("\n"):
         failures.append(f"stdout differs: expected {expected_stdout!r}, got {stdout!r}")
 
     if "out_registers" in doc:
-        failures.extend(_compare_mapping(doc["out_registers"], actual["registers"], "registers"))
+        failures.extend(
+            _compare_mapping(doc["out_registers"], actual["registers"], "registers")
+        )
     if "out_cache" in doc:
         if cache_stats is None:
-            failures.append("out_cache is specified, but this CPU implementation has no cache")
+            failures.append(
+                "out_cache is specified, but this CPU implementation has no cache"
+            )
         else:
             failures.extend(_compare_mapping(doc["out_cache"], cache_stats, "cache"))
     if "out_cycles" in doc and int(doc["out_cycles"]) != cpu.cycle:
-        failures.append(f"cycle count differs: expected {doc['out_cycles']}, got {cpu.cycle}")
+        failures.append(
+            f"cycle count differs: expected {doc['out_cycles']}, got {cpu.cycle}"
+        )
 
     return failures
 
@@ -324,15 +350,25 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="CSA4 golden tests: assemble -> link -> simulate -> compare"
     )
-    parser.add_argument("tests", nargs="*", type=Path, help="YAML test files or directories (default: golden/yaml)")
-    parser.add_argument("--update", action="store_true", help="generate/replace expected outputs")
+    parser.add_argument(
+        "tests",
+        nargs="*",
+        type=Path,
+        help="YAML test files or directories (default: golden/yaml)",
+    )
+    parser.add_argument(
+        "--update", action="store_true", help="generate/replace expected outputs"
+    )
     parser.add_argument("--max-cycles", type=int, default=100_000)
     parser.add_argument(
-        "--trace", action="store_true",
+        "--trace",
+        action="store_true",
         help="print the processor trace for debugging (not saved in golden YAML)",
     )
     parser.add_argument(
-        "--trace-limit", type=int, default=200,
+        "--trace-limit",
+        type=int,
+        default=200,
         help="maximum number of completed instructions to print with --trace (default: 200)",
     )
     args = parser.parse_args(argv)
@@ -375,7 +411,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR {path}: {type(exc).__name__}: {exc}")
 
     passed = len(files) - failed
-    print(f"\n{passed}/{len(files)} golden tests {'updated' if args.update else 'passed'}")
+    print(
+        f"\n{passed}/{len(files)} golden tests {'updated' if args.update else 'passed'}"
+    )
     return 1 if failed else 0
 
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 try:
     from .isa import (
@@ -47,9 +47,7 @@ class InputDevice:
             raise DeviceError("input value must be an integer")
 
         if self.value is not None:
-            raise DeviceOverrun(
-                f"input overrun: unread byte {self.value:#04x}"
-            )
+            raise DeviceOverrun(f"input overrun: unread byte {self.value:#04x}")
 
         self.value = value & 0xFF
         if self.interrupt_callback is not None:
@@ -131,11 +129,7 @@ class MMIODeviceBus:
         ):
             return False
 
-        return (
-                0 <= address < MMIO_END
-                and size > 0
-                and address + size <= MMIO_END
-        )
+        return 0 <= address < MMIO_END and size > 0 and address + size <= MMIO_END
 
     def _validate_access(self, address: int, size: int) -> None:
         if isinstance(address, bool) or not isinstance(address, int):
@@ -154,9 +148,7 @@ class MMIODeviceBus:
             raise DeviceError(f"unmapped MMIO address: {address:#010x}")
 
         if address + size > MMIO_END:
-            raise DeviceError(
-                f"MMIO access crosses region boundary: {address:#010x}"
-            )
+            raise DeviceError(f"MMIO access crosses region boundary: {address:#010x}")
 
         if address % size != 0:
             raise DeviceError(f"unaligned MMIO access: {address:#010x}")
@@ -185,9 +177,7 @@ class MMIODeviceBus:
             self.output.write(value)
             return
         if address in (INPUT_DATA, INPUT_STATUS, CYCLE_COUNTER):
-            raise DeviceError(
-                f"MMIO register is read-only: {address:#010x}"
-            )
+            raise DeviceError(f"MMIO register is read-only: {address:#010x}")
 
         raise DeviceError(f"unmapped MMIO write: {address:#010x}")
 

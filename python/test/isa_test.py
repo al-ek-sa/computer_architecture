@@ -1,5 +1,4 @@
 import pytest
-
 from main.isa import (
     FORMATS,
     REGISTER_INDEX,
@@ -79,9 +78,7 @@ def test_known_machine_encodings(instr: Instruction, word: int) -> None:
 
 
 def test_register_numbers_and_aliases() -> None:
-    assert [REGISTER_INDEX[f"r{i}"] for i in (0, 5, 10, 14, 15)] == [
-        0, 5, 10, 14, 15
-    ]
+    assert [REGISTER_INDEX[f"r{i}"] for i in (0, 5, 10, 14, 15)] == [0, 5, 10, 14, 15]
     assert REGISTER_INDEX["zero"] == 0
     assert REGISTER_INDEX["sp"] == 14
     assert REGISTER_INDEX["ra"] == 15
@@ -162,6 +159,7 @@ def test_disassemble_not() -> None:
 
 def test_disassemble_halt() -> None:
     assert disassemble(Instruction(Opcode.HALT)) == "halt"
+
 
 @pytest.mark.parametrize(
     "instruction",

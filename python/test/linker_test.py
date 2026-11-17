@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from main.isa import Instruction, Opcode, decode, encode
 from main.linker import (
     BINARY_VERSION,
@@ -26,19 +25,22 @@ def word_at(data: bytes | bytearray, address: int, base: int = 0) -> int:
 
 
 def test_link_single_module_reserves_vectors_before_text() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         start:
             MOVI R1, 42
             HALT
-    """, "single.s")
+    """,
+        "single.s",
+    )
 
     program = link([module])
 
     assert len(program.text) == 20
     assert program.symbols["single.s::start"] == ("text", 12)
     assert word_at(program.text, 0) == 12  # linker-generated RESET vector
-    assert word_at(program.text, 4) == 0   # INPUT disabled by default
+    assert word_at(program.text, 4) == 0  # INPUT disabled by default
     assert decode(word_at(program.text, 12)).opcode is Opcode.MOVI
     assert decode(word_at(program.text, 16)).opcode is Opcode.HALT
 
@@ -55,12 +57,15 @@ def test_link_multiple_modules_places_text_sequentially() -> None:
 
 
 def test_exported_symbol_is_available_without_module_qualification() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         .global entry
         entry:
             HALT
-    """, "entry.s")
+    """,
+        "entry.s",
+    )
 
     program = link([module])
 
@@ -95,20 +100,26 @@ def test_unresolved_import_is_rejected() -> None:
 
 
 def test_cross_module_pcrel_call_relocation() -> None:
-    caller = assemble("""
+    caller = assemble(
+        """
         .text
         .extern worker
         .global start
         start:
             CALL R15, worker
             HALT
-    """, "caller.s")
-    callee = assemble("""
+    """,
+        "caller.s",
+    )
+    callee = assemble(
+        """
         .text
         .global worker
         worker:
             RET
-    """, "callee.s")
+    """,
+        "callee.s",
+    )
 
     program = link([caller, callee])
     call = decode(word_at(program.text, 12))
@@ -120,14 +131,17 @@ def test_cross_module_pcrel_call_relocation() -> None:
 
 
 def test_local_branch_relocation_is_resolved() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         start:
             BEQ R1, R2, target
             NOP
         target:
             HALT
-    """, "branch.s")
+    """,
+        "branch.s",
+    )
 
     program = link([module])
     branch = decode(word_at(program.text, 12))
@@ -137,14 +151,17 @@ def test_local_branch_relocation_is_resolved() -> None:
 
 
 def test_word32_relocation_writes_symbol_address() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         .org 0x0C
         .word target
         .org 0x20
         target:
             HALT
-    """, "word.s")
+    """,
+        "word.s",
+    )
 
     program = link([module])
 
@@ -153,14 +170,17 @@ def test_word32_relocation_writes_symbol_address() -> None:
 
 
 def test_rodata_data_and_bss_are_placed_in_distinct_regions() -> None:
-    module = assemble('''
+    module = assemble(
+        """
         .rodata
         message: .asciz "Hi"
         .data
         value: .word 123
         .bss
         buffer: .space 16
-    ''', "sections.s")
+    """,
+        "sections.s",
+    )
 
     program = link([module])
 
@@ -179,17 +199,23 @@ def test_org_places_fragment_at_requested_address() -> None:
     program = link([module])
 
     assert program.symbols["org.s::entry"] == ("text", 0x40)
-    assert program.sections["text"][-1] == (0x40, bytearray(encode(Instruction(Opcode.HALT)).to_bytes(4, "little")))
+    assert program.sections["text"][-1] == (
+        0x40,
+        bytearray(encode(Instruction(Opcode.HALT)).to_bytes(4, "little")),
+    )
 
 
 def test_text_fragments_are_not_allowed_to_overlap() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         .org 0x20
         NOP
         .org 0x20
         HALT
-    """, "overlap.s")
+    """,
+        "overlap.s",
+    )
 
     with pytest.raises(LinkError, match="overlap"):
         link([module])
@@ -221,7 +247,8 @@ def test_unknown_object_format_is_rejected() -> None:
 
 
 def test_binary_round_trip_preserves_all_sections_and_addresses() -> None:
-    module = assemble('''
+    module = assemble(
+        """
         .text
         .org 0x0C
         start: HALT
@@ -231,7 +258,9 @@ def test_binary_round_trip_preserves_all_sections_and_addresses() -> None:
         number: .word 0x12345678
         .bss
         scratch: .space 8
-    ''', "binary.s")
+    """,
+        "binary.s",
+    )
     program = link([module])
 
     binary = to_binary(program)
@@ -296,16 +325,22 @@ def test_source_locations_are_mapped_to_linked_addresses() -> None:
 
 
 def test_abs_relocation_resolves_data_symbol_address() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         .extern object
         MOVI R1, object
-    """, "abs.s")
-    target = assemble("""
+    """,
+        "abs.s",
+    )
+    target = assemble(
+        """
         .data
         .global object
         object: .word 1
-    """, "object.s")
+    """,
+        "object.s",
+    )
 
     program = link([module, target])
     instruction = decode(word_at(program.text, 12))
@@ -315,17 +350,23 @@ def test_abs_relocation_resolves_data_symbol_address() -> None:
 
 
 def test_hi_lo_relocations_resolve_full_address() -> None:
-    module = assemble("""
+    module = assemble(
+        """
         .text
         .extern object
         LUI R1, %hi(object)
         ORI R1, R1, %lo(object)
-    """, "address.s")
-    target = assemble("""
+    """,
+        "address.s",
+    )
+    target = assemble(
+        """
         .data
         .global object
         object: .word 1
-    """, "object.s")
+    """,
+        "object.s",
+    )
 
     program = link([module, target])
     lui = decode(word_at(program.text, 12))
@@ -336,7 +377,9 @@ def test_hi_lo_relocations_resolve_full_address() -> None:
 
 
 def test_listing_formats_rodata_and_data() -> None:
-    module = assemble('''.rodata\nmsg: .asciz "A"\n.data\nnum: .word 65\n''', "data_listing.s")
+    module = assemble(
+        """.rodata\nmsg: .asciz "A"\n.data\nnum: .word 65\n""", "data_listing.s"
+    )
     result = listing(link([module]))
 
     assert "; rodata" in result

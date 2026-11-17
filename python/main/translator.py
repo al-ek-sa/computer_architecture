@@ -3,19 +3,35 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
 
 try:
     from .isa import (
-        FORMATS, REGISTER_INDEX, WORD_MASK, WORD_SIZE, Format, Instruction, Opcode,
-        encode, lower, upper,
+        FORMATS,
+        REGISTER_INDEX,
+        WORD_MASK,
+        WORD_SIZE,
+        Format,
+        Instruction,
+        Opcode,
+        encode,
+        lower,
+        upper,
     )
 except ImportError:
     from isa import (
-        FORMATS, REGISTER_INDEX, WORD_MASK, WORD_SIZE, Format, Instruction, Opcode,
-        encode, lower, upper,
+        FORMATS,
+        REGISTER_INDEX,
+        WORD_MASK,
+        WORD_SIZE,
+        Format,
+        Instruction,
+        Opcode,
+        encode,
+        lower,
+        upper,
     )
 
 TEXT = "text"
@@ -27,8 +43,13 @@ SECTIONS = (TEXT, RODATA, DATA, BSS)
 BYTE_MIN = -128
 BYTE_MAX = 0xFF
 ESCAPES = {
-    "n": "\n", "t": "\t", "r": "\r", "0": "\0",
-    "\\": "\\", '"': '"', "'": "'",
+    "n": "\n",
+    "t": "\t",
+    "r": "\r",
+    "0": "\0",
+    "\\": "\\",
+    '"': '"',
+    "'": "'",
 }
 IDENTIFIER = re.compile(r"[A-Za-z_.$][\w.$]*")
 LABEL = re.compile(r"([A-Za-z_.$][\w.$]*):")
@@ -115,7 +136,7 @@ def split_operands(text: str) -> list[str]:
         return []
     cuts = [i for i, char in _unquoted_positions(text) if char == ","]
     bounds = zip([-1, *cuts], [*cuts, len(text)], strict=True)
-    return [text[start + 1:end].strip() for start, end in bounds]
+    return [text[start + 1 : end].strip() for start, end in bounds]
 
 
 def expect(operands: list[str], count: int) -> None:
@@ -199,7 +220,9 @@ class Assembler:
 
     def location(self) -> Location:
         fragment = self.current()
-        return Location(self.section, len(self.sections[self.section]) - 1, len(fragment.data))
+        return Location(
+            self.section, len(self.sections[self.section]) - 1, len(fragment.data)
+        )
 
     def emit(self, data: bytes) -> None:
         if self.section == BSS:
@@ -260,7 +283,7 @@ class Assembler:
         line = strip_comment(raw).strip()
         while match := LABEL.match(line):
             self.define(match.group(1))
-            line = line[match.end():].strip()
+            line = line[match.end() :].strip()
         if not line:
             return
         head, *tail = line.split(maxsplit=1)
@@ -322,7 +345,9 @@ class Assembler:
                     raise AsmError(f"{self.name}:{number}: unterminated .macro")
                 if active:
                     if macro_name in self.macros:
-                        raise AsmError(f"{self.name}:{number}: duplicate macro {macro_name}")
+                        raise AsmError(
+                            f"{self.name}:{number}: duplicate macro {macro_name}"
+                        )
                     self.macros[macro_name] = (params, body)
                 continue
 
@@ -379,7 +404,9 @@ class Assembler:
                     for position, argument in enumerate(args, start=1):
                         expanded_line = expanded_line.replace(f"\\{position}", argument)
                     for parameter, argument in replacements.items():
-                        expanded_line = expanded_line.replace(f"\\{parameter}", argument)
+                        expanded_line = expanded_line.replace(
+                            f"\\{parameter}", argument
+                        )
                         expanded_line = re.sub(
                             rf"\\b{re.escape(parameter)}\\b", argument, expanded_line
                         )
@@ -457,7 +484,11 @@ class Assembler:
 
         if reference is not None:
             self.relocations.append(
-                Relocation(self.location(), relocation_kind(opcode, reference), reference.symbol)
+                Relocation(
+                    self.location(),
+                    relocation_kind(opcode, reference),
+                    reference.symbol,
+                )
             )
         self.emit(word.to_bytes(WORD_SIZE, "little"))
 
@@ -471,7 +502,9 @@ class Assembler:
             if opcode == Opcode.NOT:
                 expect(operands, 2)
                 return Instruction(
-                    opcode, rd=self.register(operands[0]), rs1=self.register(operands[1])
+                    opcode,
+                    rd=self.register(operands[0]),
+                    rs1=self.register(operands[1]),
                 ), None
             expect(operands, 3)
             rd, rs1, rs2 = (self.register(item) for item in operands)
@@ -484,11 +517,15 @@ class Assembler:
                 return _build(opcode, offset, rd=self.register(operands[0]), rs1=base)
             if opcode == Opcode.MOVI:
                 expect(operands, 2)
-                return _build(opcode, self.value(operands[1]), rd=self.register(operands[0]))
+                return _build(
+                    opcode, self.value(operands[1]), rd=self.register(operands[0])
+                )
             expect(operands, 3)
             return _build(
-                opcode, self.value(operands[2]),
-                rd=self.register(operands[0]), rs1=self.register(operands[1])
+                opcode,
+                self.value(operands[2]),
+                rd=self.register(operands[0]),
+                rs1=self.register(operands[1]),
             )
 
         if fmt is Format.STORE:
@@ -507,11 +544,15 @@ class Assembler:
                 expect(operands, 1)
                 return Instruction(opcode), self.label(operands[0])
             expect(operands, 2)
-            return Instruction(opcode, rd=self.register(operands[0])), self.label(operands[1])
+            return Instruction(opcode, rd=self.register(operands[0])), self.label(
+                operands[1]
+            )
 
         if fmt is Format.UPPER:
             expect(operands, 2)
-            return _build(opcode, self.value(operands[1]), rd=self.register(operands[0]))
+            return _build(
+                opcode, self.value(operands[1]), rd=self.register(operands[0])
+            )
 
         raise AsmError(f"unsupported instruction format for {opcode.mnemonic}")
 
@@ -652,7 +693,9 @@ class Assembler:
             if isinstance(value, Ref):
                 if value.modifier:
                     raise AsmError("relocation modifiers are not supported in .word")
-                self.relocations.append(Relocation(self.location(), "word32", value.symbol))
+                self.relocations.append(
+                    Relocation(self.location(), "word32", value.symbol)
+                )
                 value = 0
             if not -(1 << 31) <= value <= WORD_MASK:
                 raise AsmError(f".word value out of range: {value}")
@@ -746,10 +789,14 @@ def parse_define(text: str) -> tuple[str, int]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="CSA4 assembler: .s -> relocatable .o JSON")
+    parser = argparse.ArgumentParser(
+        description="CSA4 assembler: .s -> relocatable .o JSON"
+    )
     parser.add_argument("source", type=Path)
     parser.add_argument("target", type=Path)
-    parser.add_argument("-D", dest="defines", action="append", type=parse_define, default=[])
+    parser.add_argument(
+        "-D", dest="defines", action="append", type=parse_define, default=[]
+    )
     args = parser.parse_args()
 
     try:

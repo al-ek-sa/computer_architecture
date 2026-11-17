@@ -1,5 +1,4 @@
 import pytest
-
 from main.interrupts import InterruptController, InterruptError
 
 

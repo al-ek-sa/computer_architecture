@@ -1,7 +1,11 @@
 import pytest
-
 from main.devices import (
-    CycleCounter, DeviceError, DeviceOverrun, InputDevice, MMIODeviceBus, OutputDevice,
+    CycleCounter,
+    DeviceError,
+    DeviceOverrun,
+    InputDevice,
+    MMIODeviceBus,
+    OutputDevice,
 )
 from main.isa import CYCLE_COUNTER, INPUT_DATA, INPUT_STATUS, OUTPUT_DATA, WORD_MASK
 
