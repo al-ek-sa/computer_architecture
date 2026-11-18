@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/arc-comp.iml" filepath="$PROJECT_DIR$/.idea/arc-comp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/computer-architecture.iml" filepath="$PROJECT_DIR$/.idea/computer-architecture.iml" />
     </modules>
   </component>
 </project>
