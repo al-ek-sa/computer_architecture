@@ -43,11 +43,11 @@ asm | risc | harv | hw | trap | mem | cstr | cache | alg2
 
 ### Схема DataPath
 
-![DataPath](schema/DataPath1_2.png)
+![DataPath](schema/DataPath1_3.png)
 
 ### Схема ControlUnit
 
-![ControlUnit](schema/ControlUnit1_2.png)
+![ControlUnit](schema/ControlUnit1_3.png)
 
 ## Особенности реализации процесса моделирования
 
