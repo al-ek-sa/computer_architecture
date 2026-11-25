@@ -33,251 +33,923 @@ out_sections:
 out_stdout: 'CSA4 test
 
   '
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  8      0x00000010   movi                R3=0x00003000
+  2      0x0000000C   DECODE      movi                -
 
-  22     0x00000014   loadb               R2=0x00000043
+  3      0x0000000C   EXECUTE     movi                -
 
-  35     0x00000018   storeb              -
+  4      0x0000000C   WRITEBACK   movi                R1=0x00001000
 
-  38     0x0000001C   beq                 -
+  5      0x00000010   FETCH       -                   -
 
-  42     0x00000020   addi                R1=0x00001001
+  6      0x00000010   DECODE      movi                -
 
-  46     0x00000024   addi                R3=0x00003001
+  7      0x00000010   EXECUTE     movi                -
 
-  49     0x00000028   jmp                 -
+  8      0x00000010   WRITEBACK   movi                R3=0x00003000
 
-  73     0x00000014   loadb               R2=0x00000053
+  9      0x00000014   FETCH       -                   -
 
-  86     0x00000018   storeb              -
+  10     0x00000014   DECODE      loadb               -
 
-  89     0x0000001C   beq                 -
+  11     0x00000014   EXECUTE     loadb               -
 
-  93     0x00000020   addi                R1=0x00001002
+  21     0x00000014   MEMORY      loadb               -
 
-  97     0x00000024   addi                R3=0x00003002
+  22     0x00000014   WRITEBACK   loadb               R2=0x00000043
 
-  100    0x00000028   jmp                 -
+  23     0x00000018   FETCH       -                   -
 
-  124    0x00000014   loadb               R2=0x00000041
+  24     0x00000018   DECODE      storeb              -
 
-  137    0x00000018   storeb              -
+  25     0x00000018   EXECUTE     storeb              -
 
-  140    0x0000001C   beq                 -
+  35     0x00000018   MEMORY      storeb              -
 
-  144    0x00000020   addi                R1=0x00001003
+  36     0x0000001C   FETCH       -                   -
 
-  148    0x00000024   addi                R3=0x00003003
+  37     0x0000001C   DECODE      beq                 -
 
-  151    0x00000028   jmp                 -
+  38     0x0000001C   EXECUTE     beq                 -
 
-  175    0x00000014   loadb               R2=0x00000034
+  39     0x00000020   FETCH       -                   -
 
-  188    0x00000018   storeb              -
+  40     0x00000020   DECODE      addi                -
 
-  191    0x0000001C   beq                 -
+  41     0x00000020   EXECUTE     addi                -
 
-  195    0x00000020   addi                R1=0x00001004
+  42     0x00000020   WRITEBACK   addi                R1=0x00001001
 
-  199    0x00000024   addi                R3=0x00003004
+  43     0x00000024   FETCH       -                   -
 
-  202    0x00000028   jmp                 -
+  44     0x00000024   DECODE      addi                -
 
-  226    0x00000014   loadb               R2=0x00000020
+  45     0x00000024   EXECUTE     addi                -
 
-  239    0x00000018   storeb              -
+  46     0x00000024   WRITEBACK   addi                R3=0x00003001
 
-  242    0x0000001C   beq                 -
+  47     0x00000028   FETCH       -                   -
 
-  246    0x00000020   addi                R1=0x00001005
+  48     0x00000028   DECODE      jmp                 -
 
-  250    0x00000024   addi                R3=0x00003005
+  49     0x00000028   EXECUTE     jmp                 -
 
-  253    0x00000028   jmp                 -
+  50     0x00000014   FETCH       -                   -
 
-  277    0x00000014   loadb               R2=0x00000074
+  51     0x00000014   DECODE      loadb               -
 
-  290    0x00000018   storeb              -
+  52     0x00000014   EXECUTE     loadb               -
 
-  293    0x0000001C   beq                 -
+  72     0x00000014   MEMORY      loadb               -
 
-  297    0x00000020   addi                R1=0x00001006
+  73     0x00000014   WRITEBACK   loadb               R2=0x00000053
 
-  301    0x00000024   addi                R3=0x00003006
+  74     0x00000018   FETCH       -                   -
 
-  304    0x00000028   jmp                 -
+  75     0x00000018   DECODE      storeb              -
 
-  328    0x00000014   loadb               R2=0x00000065
+  76     0x00000018   EXECUTE     storeb              -
 
-  341    0x00000018   storeb              -
+  86     0x00000018   MEMORY      storeb              -
 
-  344    0x0000001C   beq                 -
+  87     0x0000001C   FETCH       -                   -
 
-  348    0x00000020   addi                R1=0x00001007
+  88     0x0000001C   DECODE      beq                 -
 
-  352    0x00000024   addi                R3=0x00003007
+  89     0x0000001C   EXECUTE     beq                 -
 
-  355    0x00000028   jmp                 -
+  90     0x00000020   FETCH       -                   -
 
-  379    0x00000014   loadb               R2=0x00000073
+  91     0x00000020   DECODE      addi                -
 
-  392    0x00000018   storeb              -
+  92     0x00000020   EXECUTE     addi                -
 
-  395    0x0000001C   beq                 -
+  93     0x00000020   WRITEBACK   addi                R1=0x00001002
 
-  399    0x00000020   addi                R1=0x00001008
+  94     0x00000024   FETCH       -                   -
 
-  403    0x00000024   addi                R3=0x00003008
+  95     0x00000024   DECODE      addi                -
 
-  406    0x00000028   jmp                 -
+  96     0x00000024   EXECUTE     addi                -
 
-  430    0x00000014   loadb               R2=0x00000074
+  97     0x00000024   WRITEBACK   addi                R3=0x00003002
 
-  443    0x00000018   storeb              -
+  98     0x00000028   FETCH       -                   -
 
-  446    0x0000001C   beq                 -
+  99     0x00000028   DECODE      jmp                 -
 
-  450    0x00000020   addi                R1=0x00001009
+  100    0x00000028   EXECUTE     jmp                 -
 
-  454    0x00000024   addi                R3=0x00003009
+  101    0x00000014   FETCH       -                   -
 
-  457    0x00000028   jmp                 -
+  102    0x00000014   DECODE      loadb               -
 
-  481    0x00000014   loadb               R2=0x0000000A
+  103    0x00000014   EXECUTE     loadb               -
 
-  494    0x00000018   storeb              -
+  123    0x00000014   MEMORY      loadb               -
 
-  497    0x0000001C   beq                 -
+  124    0x00000014   WRITEBACK   loadb               R2=0x00000041
 
-  501    0x00000020   addi                R1=0x0000100A
+  125    0x00000018   FETCH       -                   -
 
-  505    0x00000024   addi                R3=0x0000300A
+  126    0x00000018   DECODE      storeb              -
 
-  508    0x00000028   jmp                 -
+  127    0x00000018   EXECUTE     storeb              -
 
-  532    0x00000014   loadb               R2=0x00000000
+  137    0x00000018   MEMORY      storeb              -
 
-  545    0x00000018   storeb              -
+  138    0x0000001C   FETCH       -                   -
 
-  548    0x0000001C   beq                 -
+  139    0x0000001C   DECODE      beq                 -
 
-  552    0x0000002C   movi                R3=0x00003000
+  140    0x0000001C   EXECUTE     beq                 -
 
-  557    0x00000030   loadb               R2=0x00000043
+  141    0x00000020   FETCH       -                   -
 
-  560    0x00000034   beq                 -
+  142    0x00000020   DECODE      addi                -
 
-  564    0x00000038   storeb              -
+  143    0x00000020   EXECUTE     addi                -
 
-  568    0x0000003C   addi                R3=0x00003001
+  144    0x00000020   WRITEBACK   addi                R1=0x00001003
 
-  571    0x00000040   jmp                 -
+  145    0x00000024   FETCH       -                   -
 
-  576    0x00000030   loadb               R2=0x00000053
+  146    0x00000024   DECODE      addi                -
 
-  579    0x00000034   beq                 -
+  147    0x00000024   EXECUTE     addi                -
 
-  583    0x00000038   storeb              -
+  148    0x00000024   WRITEBACK   addi                R3=0x00003003
 
-  587    0x0000003C   addi                R3=0x00003002
+  149    0x00000028   FETCH       -                   -
 
-  590    0x00000040   jmp                 -
+  150    0x00000028   DECODE      jmp                 -
 
-  595    0x00000030   loadb               R2=0x00000041
+  151    0x00000028   EXECUTE     jmp                 -
 
-  598    0x00000034   beq                 -
+  152    0x00000014   FETCH       -                   -
 
-  602    0x00000038   storeb              -
+  153    0x00000014   DECODE      loadb               -
 
-  606    0x0000003C   addi                R3=0x00003003
+  154    0x00000014   EXECUTE     loadb               -
 
-  609    0x00000040   jmp                 -
+  174    0x00000014   MEMORY      loadb               -
 
-  614    0x00000030   loadb               R2=0x00000034
+  175    0x00000014   WRITEBACK   loadb               R2=0x00000034
 
-  617    0x00000034   beq                 -
+  176    0x00000018   FETCH       -                   -
 
-  621    0x00000038   storeb              -
+  177    0x00000018   DECODE      storeb              -
 
-  625    0x0000003C   addi                R3=0x00003004
+  178    0x00000018   EXECUTE     storeb              -
 
-  628    0x00000040   jmp                 -
+  188    0x00000018   MEMORY      storeb              -
 
-  633    0x00000030   loadb               R2=0x00000020
+  189    0x0000001C   FETCH       -                   -
 
-  636    0x00000034   beq                 -
+  190    0x0000001C   DECODE      beq                 -
 
-  640    0x00000038   storeb              -
+  191    0x0000001C   EXECUTE     beq                 -
 
-  644    0x0000003C   addi                R3=0x00003005
+  192    0x00000020   FETCH       -                   -
 
-  647    0x00000040   jmp                 -
+  193    0x00000020   DECODE      addi                -
 
-  652    0x00000030   loadb               R2=0x00000074
+  194    0x00000020   EXECUTE     addi                -
 
-  655    0x00000034   beq                 -
+  195    0x00000020   WRITEBACK   addi                R1=0x00001004
 
-  659    0x00000038   storeb              -
+  196    0x00000024   FETCH       -                   -
 
-  663    0x0000003C   addi                R3=0x00003006
+  197    0x00000024   DECODE      addi                -
 
-  666    0x00000040   jmp                 -
+  198    0x00000024   EXECUTE     addi                -
 
-  671    0x00000030   loadb               R2=0x00000065
+  199    0x00000024   WRITEBACK   addi                R3=0x00003004
 
-  674    0x00000034   beq                 -
+  200    0x00000028   FETCH       -                   -
 
-  678    0x00000038   storeb              -
+  201    0x00000028   DECODE      jmp                 -
 
-  682    0x0000003C   addi                R3=0x00003007
+  202    0x00000028   EXECUTE     jmp                 -
 
-  685    0x00000040   jmp                 -
+  203    0x00000014   FETCH       -                   -
 
-  690    0x00000030   loadb               R2=0x00000073
+  204    0x00000014   DECODE      loadb               -
 
-  693    0x00000034   beq                 -
+  205    0x00000014   EXECUTE     loadb               -
 
-  697    0x00000038   storeb              -
+  225    0x00000014   MEMORY      loadb               -
 
-  701    0x0000003C   addi                R3=0x00003008
+  226    0x00000014   WRITEBACK   loadb               R2=0x00000020
 
-  704    0x00000040   jmp                 -
+  227    0x00000018   FETCH       -                   -
 
-  709    0x00000030   loadb               R2=0x00000074
+  228    0x00000018   DECODE      storeb              -
 
-  712    0x00000034   beq                 -
+  229    0x00000018   EXECUTE     storeb              -
 
-  716    0x00000038   storeb              -
+  239    0x00000018   MEMORY      storeb              -
 
-  720    0x0000003C   addi                R3=0x00003009
+  240    0x0000001C   FETCH       -                   -
 
-  723    0x00000040   jmp                 -
+  241    0x0000001C   DECODE      beq                 -
 
-  728    0x00000030   loadb               R2=0x0000000A
+  242    0x0000001C   EXECUTE     beq                 -
 
-  731    0x00000034   beq                 -
+  243    0x00000020   FETCH       -                   -
 
-  735    0x00000038   storeb              -
+  244    0x00000020   DECODE      addi                -
 
-  739    0x0000003C   addi                R3=0x0000300A
+  245    0x00000020   EXECUTE     addi                -
 
-  742    0x00000040   jmp                 -
+  246    0x00000020   WRITEBACK   addi                R1=0x00001005
 
-  747    0x00000030   loadb               R2=0x00000000
+  247    0x00000024   FETCH       -                   -
 
-  750    0x00000034   beq                 -
+  248    0x00000024   DECODE      addi                -
 
-  753    0x00000044   halt                -
+  249    0x00000024   EXECUTE     addi                -
 
-  -------------------------------------------------------
+  250    0x00000024   WRITEBACK   addi                R3=0x00003005
 
-  Instructions: 119 | Cycles: 753
+  251    0x00000028   FETCH       -                   -
+
+  252    0x00000028   DECODE      jmp                 -
+
+  253    0x00000028   EXECUTE     jmp                 -
+
+  254    0x00000014   FETCH       -                   -
+
+  255    0x00000014   DECODE      loadb               -
+
+  256    0x00000014   EXECUTE     loadb               -
+
+  276    0x00000014   MEMORY      loadb               -
+
+  277    0x00000014   WRITEBACK   loadb               R2=0x00000074
+
+  278    0x00000018   FETCH       -                   -
+
+  279    0x00000018   DECODE      storeb              -
+
+  280    0x00000018   EXECUTE     storeb              -
+
+  290    0x00000018   MEMORY      storeb              -
+
+  291    0x0000001C   FETCH       -                   -
+
+  292    0x0000001C   DECODE      beq                 -
+
+  293    0x0000001C   EXECUTE     beq                 -
+
+  294    0x00000020   FETCH       -                   -
+
+  295    0x00000020   DECODE      addi                -
+
+  296    0x00000020   EXECUTE     addi                -
+
+  297    0x00000020   WRITEBACK   addi                R1=0x00001006
+
+  298    0x00000024   FETCH       -                   -
+
+  299    0x00000024   DECODE      addi                -
+
+  300    0x00000024   EXECUTE     addi                -
+
+  301    0x00000024   WRITEBACK   addi                R3=0x00003006
+
+  302    0x00000028   FETCH       -                   -
+
+  303    0x00000028   DECODE      jmp                 -
+
+  304    0x00000028   EXECUTE     jmp                 -
+
+  305    0x00000014   FETCH       -                   -
+
+  306    0x00000014   DECODE      loadb               -
+
+  307    0x00000014   EXECUTE     loadb               -
+
+  327    0x00000014   MEMORY      loadb               -
+
+  328    0x00000014   WRITEBACK   loadb               R2=0x00000065
+
+  329    0x00000018   FETCH       -                   -
+
+  330    0x00000018   DECODE      storeb              -
+
+  331    0x00000018   EXECUTE     storeb              -
+
+  341    0x00000018   MEMORY      storeb              -
+
+  342    0x0000001C   FETCH       -                   -
+
+  343    0x0000001C   DECODE      beq                 -
+
+  344    0x0000001C   EXECUTE     beq                 -
+
+  345    0x00000020   FETCH       -                   -
+
+  346    0x00000020   DECODE      addi                -
+
+  347    0x00000020   EXECUTE     addi                -
+
+  348    0x00000020   WRITEBACK   addi                R1=0x00001007
+
+  349    0x00000024   FETCH       -                   -
+
+  350    0x00000024   DECODE      addi                -
+
+  351    0x00000024   EXECUTE     addi                -
+
+  352    0x00000024   WRITEBACK   addi                R3=0x00003007
+
+  353    0x00000028   FETCH       -                   -
+
+  354    0x00000028   DECODE      jmp                 -
+
+  355    0x00000028   EXECUTE     jmp                 -
+
+  356    0x00000014   FETCH       -                   -
+
+  357    0x00000014   DECODE      loadb               -
+
+  358    0x00000014   EXECUTE     loadb               -
+
+  378    0x00000014   MEMORY      loadb               -
+
+  379    0x00000014   WRITEBACK   loadb               R2=0x00000073
+
+  380    0x00000018   FETCH       -                   -
+
+  381    0x00000018   DECODE      storeb              -
+
+  382    0x00000018   EXECUTE     storeb              -
+
+  392    0x00000018   MEMORY      storeb              -
+
+  393    0x0000001C   FETCH       -                   -
+
+  394    0x0000001C   DECODE      beq                 -
+
+  395    0x0000001C   EXECUTE     beq                 -
+
+  396    0x00000020   FETCH       -                   -
+
+  397    0x00000020   DECODE      addi                -
+
+  398    0x00000020   EXECUTE     addi                -
+
+  399    0x00000020   WRITEBACK   addi                R1=0x00001008
+
+  400    0x00000024   FETCH       -                   -
+
+  401    0x00000024   DECODE      addi                -
+
+  402    0x00000024   EXECUTE     addi                -
+
+  403    0x00000024   WRITEBACK   addi                R3=0x00003008
+
+  404    0x00000028   FETCH       -                   -
+
+  405    0x00000028   DECODE      jmp                 -
+
+  406    0x00000028   EXECUTE     jmp                 -
+
+  407    0x00000014   FETCH       -                   -
+
+  408    0x00000014   DECODE      loadb               -
+
+  409    0x00000014   EXECUTE     loadb               -
+
+  429    0x00000014   MEMORY      loadb               -
+
+  430    0x00000014   WRITEBACK   loadb               R2=0x00000074
+
+  431    0x00000018   FETCH       -                   -
+
+  432    0x00000018   DECODE      storeb              -
+
+  433    0x00000018   EXECUTE     storeb              -
+
+  443    0x00000018   MEMORY      storeb              -
+
+  444    0x0000001C   FETCH       -                   -
+
+  445    0x0000001C   DECODE      beq                 -
+
+  446    0x0000001C   EXECUTE     beq                 -
+
+  447    0x00000020   FETCH       -                   -
+
+  448    0x00000020   DECODE      addi                -
+
+  449    0x00000020   EXECUTE     addi                -
+
+  450    0x00000020   WRITEBACK   addi                R1=0x00001009
+
+  451    0x00000024   FETCH       -                   -
+
+  452    0x00000024   DECODE      addi                -
+
+  453    0x00000024   EXECUTE     addi                -
+
+  454    0x00000024   WRITEBACK   addi                R3=0x00003009
+
+  455    0x00000028   FETCH       -                   -
+
+  456    0x00000028   DECODE      jmp                 -
+
+  457    0x00000028   EXECUTE     jmp                 -
+
+  458    0x00000014   FETCH       -                   -
+
+  459    0x00000014   DECODE      loadb               -
+
+  460    0x00000014   EXECUTE     loadb               -
+
+  480    0x00000014   MEMORY      loadb               -
+
+  481    0x00000014   WRITEBACK   loadb               R2=0x0000000A
+
+  482    0x00000018   FETCH       -                   -
+
+  483    0x00000018   DECODE      storeb              -
+
+  484    0x00000018   EXECUTE     storeb              -
+
+  494    0x00000018   MEMORY      storeb              -
+
+  495    0x0000001C   FETCH       -                   -
+
+  496    0x0000001C   DECODE      beq                 -
+
+  497    0x0000001C   EXECUTE     beq                 -
+
+  498    0x00000020   FETCH       -                   -
+
+  499    0x00000020   DECODE      addi                -
+
+  500    0x00000020   EXECUTE     addi                -
+
+  501    0x00000020   WRITEBACK   addi                R1=0x0000100A
+
+  502    0x00000024   FETCH       -                   -
+
+  503    0x00000024   DECODE      addi                -
+
+  504    0x00000024   EXECUTE     addi                -
+
+  505    0x00000024   WRITEBACK   addi                R3=0x0000300A
+
+  506    0x00000028   FETCH       -                   -
+
+  507    0x00000028   DECODE      jmp                 -
+
+  508    0x00000028   EXECUTE     jmp                 -
+
+  509    0x00000014   FETCH       -                   -
+
+  510    0x00000014   DECODE      loadb               -
+
+  511    0x00000014   EXECUTE     loadb               -
+
+  531    0x00000014   MEMORY      loadb               -
+
+  532    0x00000014   WRITEBACK   loadb               R2=0x00000000
+
+  533    0x00000018   FETCH       -                   -
+
+  534    0x00000018   DECODE      storeb              -
+
+  535    0x00000018   EXECUTE     storeb              -
+
+  545    0x00000018   MEMORY      storeb              -
+
+  546    0x0000001C   FETCH       -                   -
+
+  547    0x0000001C   DECODE      beq                 -
+
+  548    0x0000001C   EXECUTE     beq                 -
+
+  549    0x0000002C   FETCH       -                   -
+
+  550    0x0000002C   DECODE      movi                -
+
+  551    0x0000002C   EXECUTE     movi                -
+
+  552    0x0000002C   WRITEBACK   movi                R3=0x00003000
+
+  553    0x00000030   FETCH       -                   -
+
+  554    0x00000030   DECODE      loadb               -
+
+  555    0x00000030   EXECUTE     loadb               -
+
+  556    0x00000030   MEMORY      loadb               -
+
+  557    0x00000030   WRITEBACK   loadb               R2=0x00000043
+
+  558    0x00000034   FETCH       -                   -
+
+  559    0x00000034   DECODE      beq                 -
+
+  560    0x00000034   EXECUTE     beq                 -
+
+  561    0x00000038   FETCH       -                   -
+
+  562    0x00000038   DECODE      storeb              -
+
+  563    0x00000038   EXECUTE     storeb              -
+
+  564    0x00000038   MEMORY      storeb              -
+
+  565    0x0000003C   FETCH       -                   -
+
+  566    0x0000003C   DECODE      addi                -
+
+  567    0x0000003C   EXECUTE     addi                -
+
+  568    0x0000003C   WRITEBACK   addi                R3=0x00003001
+
+  569    0x00000040   FETCH       -                   -
+
+  570    0x00000040   DECODE      jmp                 -
+
+  571    0x00000040   EXECUTE     jmp                 -
+
+  572    0x00000030   FETCH       -                   -
+
+  573    0x00000030   DECODE      loadb               -
+
+  574    0x00000030   EXECUTE     loadb               -
+
+  575    0x00000030   MEMORY      loadb               -
+
+  576    0x00000030   WRITEBACK   loadb               R2=0x00000053
+
+  577    0x00000034   FETCH       -                   -
+
+  578    0x00000034   DECODE      beq                 -
+
+  579    0x00000034   EXECUTE     beq                 -
+
+  580    0x00000038   FETCH       -                   -
+
+  581    0x00000038   DECODE      storeb              -
+
+  582    0x00000038   EXECUTE     storeb              -
+
+  583    0x00000038   MEMORY      storeb              -
+
+  584    0x0000003C   FETCH       -                   -
+
+  585    0x0000003C   DECODE      addi                -
+
+  586    0x0000003C   EXECUTE     addi                -
+
+  587    0x0000003C   WRITEBACK   addi                R3=0x00003002
+
+  588    0x00000040   FETCH       -                   -
+
+  589    0x00000040   DECODE      jmp                 -
+
+  590    0x00000040   EXECUTE     jmp                 -
+
+  591    0x00000030   FETCH       -                   -
+
+  592    0x00000030   DECODE      loadb               -
+
+  593    0x00000030   EXECUTE     loadb               -
+
+  594    0x00000030   MEMORY      loadb               -
+
+  595    0x00000030   WRITEBACK   loadb               R2=0x00000041
+
+  596    0x00000034   FETCH       -                   -
+
+  597    0x00000034   DECODE      beq                 -
+
+  598    0x00000034   EXECUTE     beq                 -
+
+  599    0x00000038   FETCH       -                   -
+
+  600    0x00000038   DECODE      storeb              -
+
+  601    0x00000038   EXECUTE     storeb              -
+
+  602    0x00000038   MEMORY      storeb              -
+
+  603    0x0000003C   FETCH       -                   -
+
+  604    0x0000003C   DECODE      addi                -
+
+  605    0x0000003C   EXECUTE     addi                -
+
+  606    0x0000003C   WRITEBACK   addi                R3=0x00003003
+
+  607    0x00000040   FETCH       -                   -
+
+  608    0x00000040   DECODE      jmp                 -
+
+  609    0x00000040   EXECUTE     jmp                 -
+
+  610    0x00000030   FETCH       -                   -
+
+  611    0x00000030   DECODE      loadb               -
+
+  612    0x00000030   EXECUTE     loadb               -
+
+  613    0x00000030   MEMORY      loadb               -
+
+  614    0x00000030   WRITEBACK   loadb               R2=0x00000034
+
+  615    0x00000034   FETCH       -                   -
+
+  616    0x00000034   DECODE      beq                 -
+
+  617    0x00000034   EXECUTE     beq                 -
+
+  618    0x00000038   FETCH       -                   -
+
+  619    0x00000038   DECODE      storeb              -
+
+  620    0x00000038   EXECUTE     storeb              -
+
+  621    0x00000038   MEMORY      storeb              -
+
+  622    0x0000003C   FETCH       -                   -
+
+  623    0x0000003C   DECODE      addi                -
+
+  624    0x0000003C   EXECUTE     addi                -
+
+  625    0x0000003C   WRITEBACK   addi                R3=0x00003004
+
+  626    0x00000040   FETCH       -                   -
+
+  627    0x00000040   DECODE      jmp                 -
+
+  628    0x00000040   EXECUTE     jmp                 -
+
+  629    0x00000030   FETCH       -                   -
+
+  630    0x00000030   DECODE      loadb               -
+
+  631    0x00000030   EXECUTE     loadb               -
+
+  632    0x00000030   MEMORY      loadb               -
+
+  633    0x00000030   WRITEBACK   loadb               R2=0x00000020
+
+  634    0x00000034   FETCH       -                   -
+
+  635    0x00000034   DECODE      beq                 -
+
+  636    0x00000034   EXECUTE     beq                 -
+
+  637    0x00000038   FETCH       -                   -
+
+  638    0x00000038   DECODE      storeb              -
+
+  639    0x00000038   EXECUTE     storeb              -
+
+  640    0x00000038   MEMORY      storeb              -
+
+  641    0x0000003C   FETCH       -                   -
+
+  642    0x0000003C   DECODE      addi                -
+
+  643    0x0000003C   EXECUTE     addi                -
+
+  644    0x0000003C   WRITEBACK   addi                R3=0x00003005
+
+  645    0x00000040   FETCH       -                   -
+
+  646    0x00000040   DECODE      jmp                 -
+
+  647    0x00000040   EXECUTE     jmp                 -
+
+  648    0x00000030   FETCH       -                   -
+
+  649    0x00000030   DECODE      loadb               -
+
+  650    0x00000030   EXECUTE     loadb               -
+
+  651    0x00000030   MEMORY      loadb               -
+
+  652    0x00000030   WRITEBACK   loadb               R2=0x00000074
+
+  653    0x00000034   FETCH       -                   -
+
+  654    0x00000034   DECODE      beq                 -
+
+  655    0x00000034   EXECUTE     beq                 -
+
+  656    0x00000038   FETCH       -                   -
+
+  657    0x00000038   DECODE      storeb              -
+
+  658    0x00000038   EXECUTE     storeb              -
+
+  659    0x00000038   MEMORY      storeb              -
+
+  660    0x0000003C   FETCH       -                   -
+
+  661    0x0000003C   DECODE      addi                -
+
+  662    0x0000003C   EXECUTE     addi                -
+
+  663    0x0000003C   WRITEBACK   addi                R3=0x00003006
+
+  664    0x00000040   FETCH       -                   -
+
+  665    0x00000040   DECODE      jmp                 -
+
+  666    0x00000040   EXECUTE     jmp                 -
+
+  667    0x00000030   FETCH       -                   -
+
+  668    0x00000030   DECODE      loadb               -
+
+  669    0x00000030   EXECUTE     loadb               -
+
+  670    0x00000030   MEMORY      loadb               -
+
+  671    0x00000030   WRITEBACK   loadb               R2=0x00000065
+
+  672    0x00000034   FETCH       -                   -
+
+  673    0x00000034   DECODE      beq                 -
+
+  674    0x00000034   EXECUTE     beq                 -
+
+  675    0x00000038   FETCH       -                   -
+
+  676    0x00000038   DECODE      storeb              -
+
+  677    0x00000038   EXECUTE     storeb              -
+
+  678    0x00000038   MEMORY      storeb              -
+
+  679    0x0000003C   FETCH       -                   -
+
+  680    0x0000003C   DECODE      addi                -
+
+  681    0x0000003C   EXECUTE     addi                -
+
+  682    0x0000003C   WRITEBACK   addi                R3=0x00003007
+
+  683    0x00000040   FETCH       -                   -
+
+  684    0x00000040   DECODE      jmp                 -
+
+  685    0x00000040   EXECUTE     jmp                 -
+
+  686    0x00000030   FETCH       -                   -
+
+  687    0x00000030   DECODE      loadb               -
+
+  688    0x00000030   EXECUTE     loadb               -
+
+  689    0x00000030   MEMORY      loadb               -
+
+  690    0x00000030   WRITEBACK   loadb               R2=0x00000073
+
+  691    0x00000034   FETCH       -                   -
+
+  692    0x00000034   DECODE      beq                 -
+
+  693    0x00000034   EXECUTE     beq                 -
+
+  694    0x00000038   FETCH       -                   -
+
+  695    0x00000038   DECODE      storeb              -
+
+  696    0x00000038   EXECUTE     storeb              -
+
+  697    0x00000038   MEMORY      storeb              -
+
+  698    0x0000003C   FETCH       -                   -
+
+  699    0x0000003C   DECODE      addi                -
+
+  700    0x0000003C   EXECUTE     addi                -
+
+  701    0x0000003C   WRITEBACK   addi                R3=0x00003008
+
+  702    0x00000040   FETCH       -                   -
+
+  703    0x00000040   DECODE      jmp                 -
+
+  704    0x00000040   EXECUTE     jmp                 -
+
+  705    0x00000030   FETCH       -                   -
+
+  706    0x00000030   DECODE      loadb               -
+
+  707    0x00000030   EXECUTE     loadb               -
+
+  708    0x00000030   MEMORY      loadb               -
+
+  709    0x00000030   WRITEBACK   loadb               R2=0x00000074
+
+  710    0x00000034   FETCH       -                   -
+
+  711    0x00000034   DECODE      beq                 -
+
+  712    0x00000034   EXECUTE     beq                 -
+
+  713    0x00000038   FETCH       -                   -
+
+  714    0x00000038   DECODE      storeb              -
+
+  715    0x00000038   EXECUTE     storeb              -
+
+  716    0x00000038   MEMORY      storeb              -
+
+  717    0x0000003C   FETCH       -                   -
+
+  718    0x0000003C   DECODE      addi                -
+
+  719    0x0000003C   EXECUTE     addi                -
+
+  720    0x0000003C   WRITEBACK   addi                R3=0x00003009
+
+  721    0x00000040   FETCH       -                   -
+
+  722    0x00000040   DECODE      jmp                 -
+
+  723    0x00000040   EXECUTE     jmp                 -
+
+  724    0x00000030   FETCH       -                   -
+
+  725    0x00000030   DECODE      loadb               -
+
+  726    0x00000030   EXECUTE     loadb               -
+
+  727    0x00000030   MEMORY      loadb               -
+
+  728    0x00000030   WRITEBACK   loadb               R2=0x0000000A
+
+  729    0x00000034   FETCH       -                   -
+
+  730    0x00000034   DECODE      beq                 -
+
+  731    0x00000034   EXECUTE     beq                 -
+
+  732    0x00000038   FETCH       -                   -
+
+  733    0x00000038   DECODE      storeb              -
+
+  734    0x00000038   EXECUTE     storeb              -
+
+  735    0x00000038   MEMORY      storeb              -
+
+  736    0x0000003C   FETCH       -                   -
+
+  737    0x0000003C   DECODE      addi                -
+
+  738    0x0000003C   EXECUTE     addi                -
+
+  739    0x0000003C   WRITEBACK   addi                R3=0x0000300A
+
+  740    0x00000040   FETCH       -                   -
+
+  741    0x00000040   DECODE      jmp                 -
+
+  742    0x00000040   EXECUTE     jmp                 -
+
+  743    0x00000030   FETCH       -                   -
+
+  744    0x00000030   DECODE      loadb               -
+
+  745    0x00000030   EXECUTE     loadb               -
+
+  746    0x00000030   MEMORY      loadb               -
+
+  747    0x00000030   WRITEBACK   loadb               R2=0x00000000
+
+  748    0x00000034   FETCH       -                   -
+
+  749    0x00000034   DECODE      beq                 -
+
+  750    0x00000034   EXECUTE     beq                 -
+
+  751    0x00000044   FETCH       -                   -
+
+  752    0x00000044   DECODE      halt                -
+
+  753    0x00000044   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 455 | Cycles: 753
 
   '
 out_registers:

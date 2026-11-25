@@ -92,14 +92,14 @@ def parse_input_schedule(value: Any) -> list[tuple[int, bytes]]:
 
 
 def render_trace(trace: list[Any], *, limit: int | None = None) -> str:
-    completed = [entry for entry in trace if entry.stage in {"FETCH", "HALTED"}]
-    entries = completed if limit is None else completed[:limit]
+    entries = trace if limit is None else trace[:limit]
 
-    columns = (7, 12, 20)
+    columns = (7, 12, 12, 20)
     header = (
         f"{'CYCLE':<{columns[0]}}"
         f"{'PC':<{columns[1]}}"
-        f"{'INSTRUCTION':<{columns[2]}}"
+        f"{'STAGE':<{columns[2]}}"
+        f"{'INSTRUCTION':<{columns[3]}}"
         "REGISTER CHANGES"
     )
     separator = "-" * len(header)
@@ -115,22 +115,22 @@ def render_trace(trace: list[Any], *, limit: int | None = None) -> str:
                     changes.append(f"R{index}=0x{value & 0xFFFFFFFF:08X}")
 
         instruction = getattr(entry, "instruction", "") or "-"
-        pc = getattr(entry, "instruction_pc", entry.pc)
         change_text = ", ".join(changes) if changes else "-"
         lines.append(
             f"{entry.cycle:<{columns[0]}}"
-            f"0x{pc:08X}   "
-            f"{instruction:<{columns[2]}}"
+            f"0x{entry.instruction_pc:08X}   "
+            f"{entry.stage:<{columns[2]}}"
+            f"{instruction:<{columns[3]}}"
             f"{change_text}"
         )
         previous = current
 
-    if limit is not None and len(completed) > limit:
-        lines.append(f"... {len(completed) - limit} instructions omitted ...")
+    if limit is not None and len(trace) > limit:
+        lines.append(f"... {len(trace) - limit} cycles omitted ...")
 
     if trace:
         lines.append(separator)
-        lines.append(f"Instructions: {len(completed)} | Cycles: {trace[-1].cycle}")
+        lines.append(f"Trace entries: {len(trace)} | Cycles: {trace[-1].cycle}")
 
     return "\n".join(lines) + "\n"
 
@@ -371,10 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         "--trace-limit",
         type=int,
         default=200,
-        help=(
-            "maximum number of completed instructions to print with "
-            "--trace (default: 200)"
-        ),
+        help="maximum number of cycles to print with --trace (default: 200)",
     )
     args = parser.parse_args(argv)
     if not args.tests:

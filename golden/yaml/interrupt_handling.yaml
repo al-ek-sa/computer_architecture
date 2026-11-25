@@ -24,107 +24,317 @@ out_sections:
   data: []
   bss: []
 out_stdout: AB
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  7      0x00000010   jmp                 -
+  2      0x0000000C   DECODE      movi                -
 
-  10     0x00000010   jmp                 -
+  3      0x0000000C   EXECUTE     movi                -
 
-  13     0x00000010   jmp                 -
+  4      0x0000000C   WRITEBACK   movi                -
 
-  16     0x00000010   jmp                 -
+  5      0x00000010   FETCH       -                   -
 
-  19     0x00000010   jmp                 -
+  6      0x00000010   DECODE      jmp                 -
 
-  24     0x00000014   loadb               R2=0x00000041
+  7      0x00000010   EXECUTE     jmp                 -
 
-  27     0x00000018   beq                 -
+  8      0x00000010   FETCH       -                   -
 
-  31     0x0000001C   addi                R1=0x00000001
+  9      0x00000010   DECODE      jmp                 -
 
-  35     0x00000020   storeb              -
+  10     0x00000010   EXECUTE     jmp                 -
 
-  38     0x00000024   iret                -
+  11     0x00000010   FETCH       -                   -
 
-  41     0x00000010   jmp                 -
+  12     0x00000010   DECODE      jmp                 -
 
-  44     0x00000010   jmp                 -
+  13     0x00000010   EXECUTE     jmp                 -
 
-  47     0x00000010   jmp                 -
+  14     0x00000010   FETCH       -                   -
 
-  50     0x00000010   jmp                 -
+  15     0x00000010   DECODE      jmp                 -
 
-  53     0x00000010   jmp                 -
+  16     0x00000010   EXECUTE     jmp                 -
 
-  56     0x00000010   jmp                 -
+  17     0x00000010   FETCH       -                   -
 
-  59     0x00000010   jmp                 -
+  18     0x00000010   DECODE      jmp                 -
 
-  62     0x00000010   jmp                 -
+  19     0x00000010   EXECUTE     jmp                 -
 
-  65     0x00000010   jmp                 -
+  20     0x00000010   FETCH       -                   -
 
-  68     0x00000010   jmp                 -
+  21     0x00000014   DECODE      loadb               -
 
-  71     0x00000010   jmp                 -
+  22     0x00000014   EXECUTE     loadb               -
 
-  74     0x00000010   jmp                 -
+  23     0x00000014   MEMORY      loadb               -
 
-  77     0x00000010   jmp                 -
+  24     0x00000014   WRITEBACK   loadb               R2=0x00000041
 
-  80     0x00000010   jmp                 -
+  25     0x00000018   FETCH       -                   -
 
-  85     0x00000014   loadb               R2=0x00000042
+  26     0x00000018   DECODE      beq                 -
 
-  88     0x00000018   beq                 -
+  27     0x00000018   EXECUTE     beq                 -
 
-  92     0x0000001C   addi                R1=0x00000002
+  28     0x0000001C   FETCH       -                   -
 
-  96     0x00000020   storeb              -
+  29     0x0000001C   DECODE      addi                -
 
-  99     0x00000024   iret                -
+  30     0x0000001C   EXECUTE     addi                -
 
-  102    0x00000010   jmp                 -
+  31     0x0000001C   WRITEBACK   addi                R1=0x00000001
 
-  105    0x00000010   jmp                 -
+  32     0x00000020   FETCH       -                   -
 
-  108    0x00000010   jmp                 -
+  33     0x00000020   DECODE      storeb              -
 
-  111    0x00000010   jmp                 -
+  34     0x00000020   EXECUTE     storeb              -
 
-  114    0x00000010   jmp                 -
+  35     0x00000020   MEMORY      storeb              -
 
-  117    0x00000010   jmp                 -
+  36     0x00000024   FETCH       -                   -
 
-  120    0x00000010   jmp                 -
+  37     0x00000024   DECODE      iret                -
 
-  123    0x00000010   jmp                 -
+  38     0x00000024   EXECUTE     iret                -
 
-  126    0x00000010   jmp                 -
+  39     0x00000010   FETCH       -                   -
 
-  129    0x00000010   jmp                 -
+  40     0x00000010   DECODE      jmp                 -
 
-  132    0x00000010   jmp                 -
+  41     0x00000010   EXECUTE     jmp                 -
 
-  135    0x00000010   jmp                 -
+  42     0x00000010   FETCH       -                   -
 
-  138    0x00000010   jmp                 -
+  43     0x00000010   DECODE      jmp                 -
 
-  141    0x00000010   jmp                 -
+  44     0x00000010   EXECUTE     jmp                 -
 
-  146    0x00000014   loadb               R2=0x00000000
+  45     0x00000010   FETCH       -                   -
 
-  149    0x00000018   beq                 -
+  46     0x00000010   DECODE      jmp                 -
 
-  152    0x00000028   halt                -
+  47     0x00000010   EXECUTE     jmp                 -
 
-  -------------------------------------------------------
+  48     0x00000010   FETCH       -                   -
 
-  Instructions: 47 | Cycles: 152
+  49     0x00000010   DECODE      jmp                 -
+
+  50     0x00000010   EXECUTE     jmp                 -
+
+  51     0x00000010   FETCH       -                   -
+
+  52     0x00000010   DECODE      jmp                 -
+
+  53     0x00000010   EXECUTE     jmp                 -
+
+  54     0x00000010   FETCH       -                   -
+
+  55     0x00000010   DECODE      jmp                 -
+
+  56     0x00000010   EXECUTE     jmp                 -
+
+  57     0x00000010   FETCH       -                   -
+
+  58     0x00000010   DECODE      jmp                 -
+
+  59     0x00000010   EXECUTE     jmp                 -
+
+  60     0x00000010   FETCH       -                   -
+
+  61     0x00000010   DECODE      jmp                 -
+
+  62     0x00000010   EXECUTE     jmp                 -
+
+  63     0x00000010   FETCH       -                   -
+
+  64     0x00000010   DECODE      jmp                 -
+
+  65     0x00000010   EXECUTE     jmp                 -
+
+  66     0x00000010   FETCH       -                   -
+
+  67     0x00000010   DECODE      jmp                 -
+
+  68     0x00000010   EXECUTE     jmp                 -
+
+  69     0x00000010   FETCH       -                   -
+
+  70     0x00000010   DECODE      jmp                 -
+
+  71     0x00000010   EXECUTE     jmp                 -
+
+  72     0x00000010   FETCH       -                   -
+
+  73     0x00000010   DECODE      jmp                 -
+
+  74     0x00000010   EXECUTE     jmp                 -
+
+  75     0x00000010   FETCH       -                   -
+
+  76     0x00000010   DECODE      jmp                 -
+
+  77     0x00000010   EXECUTE     jmp                 -
+
+  78     0x00000010   FETCH       -                   -
+
+  79     0x00000010   DECODE      jmp                 -
+
+  80     0x00000010   EXECUTE     jmp                 -
+
+  81     0x00000010   FETCH       -                   -
+
+  82     0x00000014   DECODE      loadb               -
+
+  83     0x00000014   EXECUTE     loadb               -
+
+  84     0x00000014   MEMORY      loadb               -
+
+  85     0x00000014   WRITEBACK   loadb               R2=0x00000042
+
+  86     0x00000018   FETCH       -                   -
+
+  87     0x00000018   DECODE      beq                 -
+
+  88     0x00000018   EXECUTE     beq                 -
+
+  89     0x0000001C   FETCH       -                   -
+
+  90     0x0000001C   DECODE      addi                -
+
+  91     0x0000001C   EXECUTE     addi                -
+
+  92     0x0000001C   WRITEBACK   addi                R1=0x00000002
+
+  93     0x00000020   FETCH       -                   -
+
+  94     0x00000020   DECODE      storeb              -
+
+  95     0x00000020   EXECUTE     storeb              -
+
+  96     0x00000020   MEMORY      storeb              -
+
+  97     0x00000024   FETCH       -                   -
+
+  98     0x00000024   DECODE      iret                -
+
+  99     0x00000024   EXECUTE     iret                -
+
+  100    0x00000010   FETCH       -                   -
+
+  101    0x00000010   DECODE      jmp                 -
+
+  102    0x00000010   EXECUTE     jmp                 -
+
+  103    0x00000010   FETCH       -                   -
+
+  104    0x00000010   DECODE      jmp                 -
+
+  105    0x00000010   EXECUTE     jmp                 -
+
+  106    0x00000010   FETCH       -                   -
+
+  107    0x00000010   DECODE      jmp                 -
+
+  108    0x00000010   EXECUTE     jmp                 -
+
+  109    0x00000010   FETCH       -                   -
+
+  110    0x00000010   DECODE      jmp                 -
+
+  111    0x00000010   EXECUTE     jmp                 -
+
+  112    0x00000010   FETCH       -                   -
+
+  113    0x00000010   DECODE      jmp                 -
+
+  114    0x00000010   EXECUTE     jmp                 -
+
+  115    0x00000010   FETCH       -                   -
+
+  116    0x00000010   DECODE      jmp                 -
+
+  117    0x00000010   EXECUTE     jmp                 -
+
+  118    0x00000010   FETCH       -                   -
+
+  119    0x00000010   DECODE      jmp                 -
+
+  120    0x00000010   EXECUTE     jmp                 -
+
+  121    0x00000010   FETCH       -                   -
+
+  122    0x00000010   DECODE      jmp                 -
+
+  123    0x00000010   EXECUTE     jmp                 -
+
+  124    0x00000010   FETCH       -                   -
+
+  125    0x00000010   DECODE      jmp                 -
+
+  126    0x00000010   EXECUTE     jmp                 -
+
+  127    0x00000010   FETCH       -                   -
+
+  128    0x00000010   DECODE      jmp                 -
+
+  129    0x00000010   EXECUTE     jmp                 -
+
+  130    0x00000010   FETCH       -                   -
+
+  131    0x00000010   DECODE      jmp                 -
+
+  132    0x00000010   EXECUTE     jmp                 -
+
+  133    0x00000010   FETCH       -                   -
+
+  134    0x00000010   DECODE      jmp                 -
+
+  135    0x00000010   EXECUTE     jmp                 -
+
+  136    0x00000010   FETCH       -                   -
+
+  137    0x00000010   DECODE      jmp                 -
+
+  138    0x00000010   EXECUTE     jmp                 -
+
+  139    0x00000010   FETCH       -                   -
+
+  140    0x00000010   DECODE      jmp                 -
+
+  141    0x00000010   EXECUTE     jmp                 -
+
+  142    0x00000010   FETCH       -                   -
+
+  143    0x00000014   DECODE      loadb               -
+
+  144    0x00000014   EXECUTE     loadb               -
+
+  145    0x00000014   MEMORY      loadb               -
+
+  146    0x00000014   WRITEBACK   loadb               R2=0x00000000
+
+  147    0x00000018   FETCH       -                   -
+
+  148    0x00000018   DECODE      beq                 -
+
+  149    0x00000018   EXECUTE     beq                 -
+
+  150    0x00000028   FETCH       -                   -
+
+  151    0x00000028   DECODE      halt                -
+
+  152    0x00000028   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 152 | Cycles: 152
 
   '
 out_registers:
