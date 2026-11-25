@@ -17,31 +17,83 @@ out_sections:
   data: []
   bss: []
 out_stdout: ''
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  8      0x00000010   movi                R2=0x00000001
+  2      0x0000000C   DECODE      movi                -
 
-  12     0x00000014   movi                R3=0x00000002
+  3      0x0000000C   EXECUTE     movi                -
 
-  16     0x00000018   movi                -
+  4      0x0000000C   WRITEBACK   movi                R1=0xFFFFFFFF
 
-  20     0x0000001C   add                 R5=0x00000001
+  5      0x00000010   FETCH       -                   -
 
-  24     0x00000020   sltu                R6=0x00000001
+  6      0x00000010   DECODE      movi                -
 
-  28     0x00000024   add                 R7=0x00000001
+  7      0x00000010   EXECUTE     movi                -
 
-  32     0x00000028   add                 R7=0x00000002
+  8      0x00000010   WRITEBACK   movi                R2=0x00000001
 
-  35     0x0000002C   halt                -
+  9      0x00000014   FETCH       -                   -
 
-  -------------------------------------------------------
+  10     0x00000014   DECODE      movi                -
 
-  Instructions: 9 | Cycles: 35
+  11     0x00000014   EXECUTE     movi                -
+
+  12     0x00000014   WRITEBACK   movi                R3=0x00000002
+
+  13     0x00000018   FETCH       -                   -
+
+  14     0x00000018   DECODE      movi                -
+
+  15     0x00000018   EXECUTE     movi                -
+
+  16     0x00000018   WRITEBACK   movi                -
+
+  17     0x0000001C   FETCH       -                   -
+
+  18     0x0000001C   DECODE      add                 -
+
+  19     0x0000001C   EXECUTE     add                 -
+
+  20     0x0000001C   WRITEBACK   add                 R5=0x00000001
+
+  21     0x00000020   FETCH       -                   -
+
+  22     0x00000020   DECODE      sltu                -
+
+  23     0x00000020   EXECUTE     sltu                -
+
+  24     0x00000020   WRITEBACK   sltu                R6=0x00000001
+
+  25     0x00000024   FETCH       -                   -
+
+  26     0x00000024   DECODE      add                 -
+
+  27     0x00000024   EXECUTE     add                 -
+
+  28     0x00000024   WRITEBACK   add                 R7=0x00000001
+
+  29     0x00000028   FETCH       -                   -
+
+  30     0x00000028   DECODE      add                 -
+
+  31     0x00000028   EXECUTE     add                 -
+
+  32     0x00000028   WRITEBACK   add                 R7=0x00000002
+
+  33     0x0000002C   FETCH       -                   -
+
+  34     0x0000002C   DECODE      halt                -
+
+  35     0x0000002C   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 35 | Cycles: 35
 
   '
 out_registers:

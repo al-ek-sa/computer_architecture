@@ -35,181 +35,557 @@ out_sections:
 out_stdout: 'hello
 
   '
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  3      0x0000000C   jmp                 -
+  1      0x0000000C   FETCH       -                   -
 
-  6      0x0000000C   jmp                 -
+  2      0x0000000C   DECODE      jmp                 -
 
-  9      0x0000000C   jmp                 -
+  3      0x0000000C   EXECUTE     jmp                 -
 
-  12     0x0000000C   jmp                 -
+  4      0x0000000C   FETCH       -                   -
 
-  15     0x0000000C   jmp                 -
+  5      0x0000000C   DECODE      jmp                 -
 
-  18     0x0000000C   jmp                 -
+  6      0x0000000C   EXECUTE     jmp                 -
 
-  21     0x0000000C   jmp                 -
+  7      0x0000000C   FETCH       -                   -
 
-  26     0x00000010   loadb               R2=0x00000068
+  8      0x0000000C   DECODE      jmp                 -
 
-  29     0x00000014   beq                 -
+  9      0x0000000C   EXECUTE     jmp                 -
 
-  33     0x00000018   storeb              -
+  10     0x0000000C   FETCH       -                   -
 
-  36     0x0000001C   iret                -
+  11     0x0000000C   DECODE      jmp                 -
 
-  39     0x0000000C   jmp                 -
+  12     0x0000000C   EXECUTE     jmp                 -
 
-  42     0x0000000C   jmp                 -
+  13     0x0000000C   FETCH       -                   -
 
-  45     0x0000000C   jmp                 -
+  14     0x0000000C   DECODE      jmp                 -
 
-  48     0x0000000C   jmp                 -
+  15     0x0000000C   EXECUTE     jmp                 -
 
-  51     0x0000000C   jmp                 -
+  16     0x0000000C   FETCH       -                   -
 
-  54     0x0000000C   jmp                 -
+  17     0x0000000C   DECODE      jmp                 -
 
-  57     0x0000000C   jmp                 -
+  18     0x0000000C   EXECUTE     jmp                 -
 
-  60     0x0000000C   jmp                 -
+  19     0x0000000C   FETCH       -                   -
 
-  65     0x00000010   loadb               R2=0x00000065
+  20     0x0000000C   DECODE      jmp                 -
 
-  68     0x00000014   beq                 -
+  21     0x0000000C   EXECUTE     jmp                 -
 
-  72     0x00000018   storeb              -
+  22     0x0000000C   FETCH       -                   -
 
-  75     0x0000001C   iret                -
+  23     0x00000010   DECODE      loadb               -
 
-  78     0x0000000C   jmp                 -
+  24     0x00000010   EXECUTE     loadb               -
 
-  81     0x0000000C   jmp                 -
+  25     0x00000010   MEMORY      loadb               -
 
-  84     0x0000000C   jmp                 -
+  26     0x00000010   WRITEBACK   loadb               R2=0x00000068
 
-  87     0x0000000C   jmp                 -
+  27     0x00000014   FETCH       -                   -
 
-  90     0x0000000C   jmp                 -
+  28     0x00000014   DECODE      beq                 -
 
-  93     0x0000000C   jmp                 -
+  29     0x00000014   EXECUTE     beq                 -
 
-  96     0x0000000C   jmp                 -
+  30     0x00000018   FETCH       -                   -
 
-  99     0x0000000C   jmp                 -
+  31     0x00000018   DECODE      storeb              -
 
-  104    0x00000010   loadb               R2=0x0000006C
+  32     0x00000018   EXECUTE     storeb              -
 
-  107    0x00000014   beq                 -
+  33     0x00000018   MEMORY      storeb              -
 
-  111    0x00000018   storeb              -
+  34     0x0000001C   FETCH       -                   -
 
-  114    0x0000001C   iret                -
+  35     0x0000001C   DECODE      iret                -
 
-  117    0x0000000C   jmp                 -
+  36     0x0000001C   EXECUTE     iret                -
 
-  120    0x0000000C   jmp                 -
+  37     0x0000000C   FETCH       -                   -
 
-  123    0x0000000C   jmp                 -
+  38     0x0000000C   DECODE      jmp                 -
 
-  126    0x0000000C   jmp                 -
+  39     0x0000000C   EXECUTE     jmp                 -
 
-  129    0x0000000C   jmp                 -
+  40     0x0000000C   FETCH       -                   -
 
-  132    0x0000000C   jmp                 -
+  41     0x0000000C   DECODE      jmp                 -
 
-  135    0x0000000C   jmp                 -
+  42     0x0000000C   EXECUTE     jmp                 -
 
-  138    0x0000000C   jmp                 -
+  43     0x0000000C   FETCH       -                   -
 
-  141    0x0000000C   jmp                 -
+  44     0x0000000C   DECODE      jmp                 -
 
-  146    0x00000010   loadb               -
+  45     0x0000000C   EXECUTE     jmp                 -
 
-  149    0x00000014   beq                 -
+  46     0x0000000C   FETCH       -                   -
 
-  153    0x00000018   storeb              -
+  47     0x0000000C   DECODE      jmp                 -
 
-  156    0x0000001C   iret                -
+  48     0x0000000C   EXECUTE     jmp                 -
 
-  159    0x0000000C   jmp                 -
+  49     0x0000000C   FETCH       -                   -
 
-  162    0x0000000C   jmp                 -
+  50     0x0000000C   DECODE      jmp                 -
 
-  165    0x0000000C   jmp                 -
+  51     0x0000000C   EXECUTE     jmp                 -
 
-  168    0x0000000C   jmp                 -
+  52     0x0000000C   FETCH       -                   -
 
-  171    0x0000000C   jmp                 -
+  53     0x0000000C   DECODE      jmp                 -
 
-  174    0x0000000C   jmp                 -
+  54     0x0000000C   EXECUTE     jmp                 -
 
-  177    0x0000000C   jmp                 -
+  55     0x0000000C   FETCH       -                   -
 
-  180    0x0000000C   jmp                 -
+  56     0x0000000C   DECODE      jmp                 -
 
-  185    0x00000010   loadb               R2=0x0000006F
+  57     0x0000000C   EXECUTE     jmp                 -
 
-  188    0x00000014   beq                 -
+  58     0x0000000C   FETCH       -                   -
 
-  192    0x00000018   storeb              -
+  59     0x0000000C   DECODE      jmp                 -
 
-  195    0x0000001C   iret                -
+  60     0x0000000C   EXECUTE     jmp                 -
 
-  198    0x0000000C   jmp                 -
+  61     0x0000000C   FETCH       -                   -
 
-  201    0x0000000C   jmp                 -
+  62     0x00000010   DECODE      loadb               -
 
-  204    0x0000000C   jmp                 -
+  63     0x00000010   EXECUTE     loadb               -
 
-  207    0x0000000C   jmp                 -
+  64     0x00000010   MEMORY      loadb               -
 
-  210    0x0000000C   jmp                 -
+  65     0x00000010   WRITEBACK   loadb               R2=0x00000065
 
-  213    0x0000000C   jmp                 -
+  66     0x00000014   FETCH       -                   -
 
-  216    0x0000000C   jmp                 -
+  67     0x00000014   DECODE      beq                 -
 
-  219    0x0000000C   jmp                 -
+  68     0x00000014   EXECUTE     beq                 -
 
-  224    0x00000010   loadb               R2=0x0000000A
+  69     0x00000018   FETCH       -                   -
 
-  227    0x00000014   beq                 -
+  70     0x00000018   DECODE      storeb              -
 
-  231    0x00000018   storeb              -
+  71     0x00000018   EXECUTE     storeb              -
 
-  234    0x0000001C   iret                -
+  72     0x00000018   MEMORY      storeb              -
 
-  237    0x0000000C   jmp                 -
+  73     0x0000001C   FETCH       -                   -
 
-  240    0x0000000C   jmp                 -
+  74     0x0000001C   DECODE      iret                -
 
-  243    0x0000000C   jmp                 -
+  75     0x0000001C   EXECUTE     iret                -
 
-  246    0x0000000C   jmp                 -
+  76     0x0000000C   FETCH       -                   -
 
-  249    0x0000000C   jmp                 -
+  77     0x0000000C   DECODE      jmp                 -
 
-  252    0x0000000C   jmp                 -
+  78     0x0000000C   EXECUTE     jmp                 -
 
-  255    0x0000000C   jmp                 -
+  79     0x0000000C   FETCH       -                   -
 
-  258    0x0000000C   jmp                 -
+  80     0x0000000C   DECODE      jmp                 -
 
-  261    0x0000000C   jmp                 -
+  81     0x0000000C   EXECUTE     jmp                 -
 
-  266    0x00000010   loadb               R2=0x00000000
+  82     0x0000000C   FETCH       -                   -
 
-  269    0x00000014   beq                 -
+  83     0x0000000C   DECODE      jmp                 -
 
-  272    0x00000020   halt                -
+  84     0x0000000C   EXECUTE     jmp                 -
 
-  -------------------------------------------------------
+  85     0x0000000C   FETCH       -                   -
 
-  Instructions: 84 | Cycles: 272
+  86     0x0000000C   DECODE      jmp                 -
+
+  87     0x0000000C   EXECUTE     jmp                 -
+
+  88     0x0000000C   FETCH       -                   -
+
+  89     0x0000000C   DECODE      jmp                 -
+
+  90     0x0000000C   EXECUTE     jmp                 -
+
+  91     0x0000000C   FETCH       -                   -
+
+  92     0x0000000C   DECODE      jmp                 -
+
+  93     0x0000000C   EXECUTE     jmp                 -
+
+  94     0x0000000C   FETCH       -                   -
+
+  95     0x0000000C   DECODE      jmp                 -
+
+  96     0x0000000C   EXECUTE     jmp                 -
+
+  97     0x0000000C   FETCH       -                   -
+
+  98     0x0000000C   DECODE      jmp                 -
+
+  99     0x0000000C   EXECUTE     jmp                 -
+
+  100    0x0000000C   FETCH       -                   -
+
+  101    0x00000010   DECODE      loadb               -
+
+  102    0x00000010   EXECUTE     loadb               -
+
+  103    0x00000010   MEMORY      loadb               -
+
+  104    0x00000010   WRITEBACK   loadb               R2=0x0000006C
+
+  105    0x00000014   FETCH       -                   -
+
+  106    0x00000014   DECODE      beq                 -
+
+  107    0x00000014   EXECUTE     beq                 -
+
+  108    0x00000018   FETCH       -                   -
+
+  109    0x00000018   DECODE      storeb              -
+
+  110    0x00000018   EXECUTE     storeb              -
+
+  111    0x00000018   MEMORY      storeb              -
+
+  112    0x0000001C   FETCH       -                   -
+
+  113    0x0000001C   DECODE      iret                -
+
+  114    0x0000001C   EXECUTE     iret                -
+
+  115    0x0000000C   FETCH       -                   -
+
+  116    0x0000000C   DECODE      jmp                 -
+
+  117    0x0000000C   EXECUTE     jmp                 -
+
+  118    0x0000000C   FETCH       -                   -
+
+  119    0x0000000C   DECODE      jmp                 -
+
+  120    0x0000000C   EXECUTE     jmp                 -
+
+  121    0x0000000C   FETCH       -                   -
+
+  122    0x0000000C   DECODE      jmp                 -
+
+  123    0x0000000C   EXECUTE     jmp                 -
+
+  124    0x0000000C   FETCH       -                   -
+
+  125    0x0000000C   DECODE      jmp                 -
+
+  126    0x0000000C   EXECUTE     jmp                 -
+
+  127    0x0000000C   FETCH       -                   -
+
+  128    0x0000000C   DECODE      jmp                 -
+
+  129    0x0000000C   EXECUTE     jmp                 -
+
+  130    0x0000000C   FETCH       -                   -
+
+  131    0x0000000C   DECODE      jmp                 -
+
+  132    0x0000000C   EXECUTE     jmp                 -
+
+  133    0x0000000C   FETCH       -                   -
+
+  134    0x0000000C   DECODE      jmp                 -
+
+  135    0x0000000C   EXECUTE     jmp                 -
+
+  136    0x0000000C   FETCH       -                   -
+
+  137    0x0000000C   DECODE      jmp                 -
+
+  138    0x0000000C   EXECUTE     jmp                 -
+
+  139    0x0000000C   FETCH       -                   -
+
+  140    0x0000000C   DECODE      jmp                 -
+
+  141    0x0000000C   EXECUTE     jmp                 -
+
+  142    0x0000000C   FETCH       -                   -
+
+  143    0x00000010   DECODE      loadb               -
+
+  144    0x00000010   EXECUTE     loadb               -
+
+  145    0x00000010   MEMORY      loadb               -
+
+  146    0x00000010   WRITEBACK   loadb               -
+
+  147    0x00000014   FETCH       -                   -
+
+  148    0x00000014   DECODE      beq                 -
+
+  149    0x00000014   EXECUTE     beq                 -
+
+  150    0x00000018   FETCH       -                   -
+
+  151    0x00000018   DECODE      storeb              -
+
+  152    0x00000018   EXECUTE     storeb              -
+
+  153    0x00000018   MEMORY      storeb              -
+
+  154    0x0000001C   FETCH       -                   -
+
+  155    0x0000001C   DECODE      iret                -
+
+  156    0x0000001C   EXECUTE     iret                -
+
+  157    0x0000000C   FETCH       -                   -
+
+  158    0x0000000C   DECODE      jmp                 -
+
+  159    0x0000000C   EXECUTE     jmp                 -
+
+  160    0x0000000C   FETCH       -                   -
+
+  161    0x0000000C   DECODE      jmp                 -
+
+  162    0x0000000C   EXECUTE     jmp                 -
+
+  163    0x0000000C   FETCH       -                   -
+
+  164    0x0000000C   DECODE      jmp                 -
+
+  165    0x0000000C   EXECUTE     jmp                 -
+
+  166    0x0000000C   FETCH       -                   -
+
+  167    0x0000000C   DECODE      jmp                 -
+
+  168    0x0000000C   EXECUTE     jmp                 -
+
+  169    0x0000000C   FETCH       -                   -
+
+  170    0x0000000C   DECODE      jmp                 -
+
+  171    0x0000000C   EXECUTE     jmp                 -
+
+  172    0x0000000C   FETCH       -                   -
+
+  173    0x0000000C   DECODE      jmp                 -
+
+  174    0x0000000C   EXECUTE     jmp                 -
+
+  175    0x0000000C   FETCH       -                   -
+
+  176    0x0000000C   DECODE      jmp                 -
+
+  177    0x0000000C   EXECUTE     jmp                 -
+
+  178    0x0000000C   FETCH       -                   -
+
+  179    0x0000000C   DECODE      jmp                 -
+
+  180    0x0000000C   EXECUTE     jmp                 -
+
+  181    0x0000000C   FETCH       -                   -
+
+  182    0x00000010   DECODE      loadb               -
+
+  183    0x00000010   EXECUTE     loadb               -
+
+  184    0x00000010   MEMORY      loadb               -
+
+  185    0x00000010   WRITEBACK   loadb               R2=0x0000006F
+
+  186    0x00000014   FETCH       -                   -
+
+  187    0x00000014   DECODE      beq                 -
+
+  188    0x00000014   EXECUTE     beq                 -
+
+  189    0x00000018   FETCH       -                   -
+
+  190    0x00000018   DECODE      storeb              -
+
+  191    0x00000018   EXECUTE     storeb              -
+
+  192    0x00000018   MEMORY      storeb              -
+
+  193    0x0000001C   FETCH       -                   -
+
+  194    0x0000001C   DECODE      iret                -
+
+  195    0x0000001C   EXECUTE     iret                -
+
+  196    0x0000000C   FETCH       -                   -
+
+  197    0x0000000C   DECODE      jmp                 -
+
+  198    0x0000000C   EXECUTE     jmp                 -
+
+  199    0x0000000C   FETCH       -                   -
+
+  200    0x0000000C   DECODE      jmp                 -
+
+  201    0x0000000C   EXECUTE     jmp                 -
+
+  202    0x0000000C   FETCH       -                   -
+
+  203    0x0000000C   DECODE      jmp                 -
+
+  204    0x0000000C   EXECUTE     jmp                 -
+
+  205    0x0000000C   FETCH       -                   -
+
+  206    0x0000000C   DECODE      jmp                 -
+
+  207    0x0000000C   EXECUTE     jmp                 -
+
+  208    0x0000000C   FETCH       -                   -
+
+  209    0x0000000C   DECODE      jmp                 -
+
+  210    0x0000000C   EXECUTE     jmp                 -
+
+  211    0x0000000C   FETCH       -                   -
+
+  212    0x0000000C   DECODE      jmp                 -
+
+  213    0x0000000C   EXECUTE     jmp                 -
+
+  214    0x0000000C   FETCH       -                   -
+
+  215    0x0000000C   DECODE      jmp                 -
+
+  216    0x0000000C   EXECUTE     jmp                 -
+
+  217    0x0000000C   FETCH       -                   -
+
+  218    0x0000000C   DECODE      jmp                 -
+
+  219    0x0000000C   EXECUTE     jmp                 -
+
+  220    0x0000000C   FETCH       -                   -
+
+  221    0x00000010   DECODE      loadb               -
+
+  222    0x00000010   EXECUTE     loadb               -
+
+  223    0x00000010   MEMORY      loadb               -
+
+  224    0x00000010   WRITEBACK   loadb               R2=0x0000000A
+
+  225    0x00000014   FETCH       -                   -
+
+  226    0x00000014   DECODE      beq                 -
+
+  227    0x00000014   EXECUTE     beq                 -
+
+  228    0x00000018   FETCH       -                   -
+
+  229    0x00000018   DECODE      storeb              -
+
+  230    0x00000018   EXECUTE     storeb              -
+
+  231    0x00000018   MEMORY      storeb              -
+
+  232    0x0000001C   FETCH       -                   -
+
+  233    0x0000001C   DECODE      iret                -
+
+  234    0x0000001C   EXECUTE     iret                -
+
+  235    0x0000000C   FETCH       -                   -
+
+  236    0x0000000C   DECODE      jmp                 -
+
+  237    0x0000000C   EXECUTE     jmp                 -
+
+  238    0x0000000C   FETCH       -                   -
+
+  239    0x0000000C   DECODE      jmp                 -
+
+  240    0x0000000C   EXECUTE     jmp                 -
+
+  241    0x0000000C   FETCH       -                   -
+
+  242    0x0000000C   DECODE      jmp                 -
+
+  243    0x0000000C   EXECUTE     jmp                 -
+
+  244    0x0000000C   FETCH       -                   -
+
+  245    0x0000000C   DECODE      jmp                 -
+
+  246    0x0000000C   EXECUTE     jmp                 -
+
+  247    0x0000000C   FETCH       -                   -
+
+  248    0x0000000C   DECODE      jmp                 -
+
+  249    0x0000000C   EXECUTE     jmp                 -
+
+  250    0x0000000C   FETCH       -                   -
+
+  251    0x0000000C   DECODE      jmp                 -
+
+  252    0x0000000C   EXECUTE     jmp                 -
+
+  253    0x0000000C   FETCH       -                   -
+
+  254    0x0000000C   DECODE      jmp                 -
+
+  255    0x0000000C   EXECUTE     jmp                 -
+
+  256    0x0000000C   FETCH       -                   -
+
+  257    0x0000000C   DECODE      jmp                 -
+
+  258    0x0000000C   EXECUTE     jmp                 -
+
+  259    0x0000000C   FETCH       -                   -
+
+  260    0x0000000C   DECODE      jmp                 -
+
+  261    0x0000000C   EXECUTE     jmp                 -
+
+  262    0x0000000C   FETCH       -                   -
+
+  263    0x00000010   DECODE      loadb               -
+
+  264    0x00000010   EXECUTE     loadb               -
+
+  265    0x00000010   MEMORY      loadb               -
+
+  266    0x00000010   WRITEBACK   loadb               R2=0x00000000
+
+  267    0x00000014   FETCH       -                   -
+
+  268    0x00000014   DECODE      beq                 -
+
+  269    0x00000014   EXECUTE     beq                 -
+
+  270    0x00000020   FETCH       -                   -
+
+  271    0x00000020   DECODE      halt                -
+
+  272    0x00000020   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 272 | Cycles: 272
 
   '
 out_registers:

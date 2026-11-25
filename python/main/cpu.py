@@ -183,6 +183,8 @@ class CPU:
     _memory_is_load: bool = False
     _memory_wait: int = 0
     _memory_cached: bool = False
+    _memory_access_detail: str = ""
+    _memory_latency: int = 0
     _next_pc: int | None = None
     _detail: str = ""
 
@@ -259,6 +261,8 @@ class CPU:
         self._memory_is_load = False
         self._memory_wait = 0
         self._memory_cached = False
+        self._memory_access_detail = ""
+        self._memory_latency = 0
         self._next_pc = None
         self._detail = ""
 
@@ -298,12 +302,14 @@ class CPU:
         self.memory.cycle_counter = self.cycle
         self._deliver_scheduled_input()
         instruction_pc = self.pc
+        executed_stage = self.stage
         self._detail = ""
         instruction_name = (
             self._instruction.opcode.mnemonic if self._instruction is not None else ""
         )
 
         trace_in_interrupt = self.in_interrupt
+        suppress_trace_entry = False
 
         if self.stage is Stage.FETCH:
             if self.pending_interrupt and not self.in_interrupt:
@@ -331,7 +337,8 @@ class CPU:
         elif self.stage is Stage.MEMORY:
             if self._memory_wait > 1:
                 self._memory_wait -= 1
-                self._detail = f"memory wait ({self._memory_wait} cycles remain)"
+                self._detail = ""
+                suppress_trace_entry = True
             else:
                 self._memory_wait = 0
                 if self._memory_is_load:
@@ -340,7 +347,10 @@ class CPU:
                             self._memory_address, self._memory_size
                         )
                     self.stage = Stage.WRITEBACK
-                    self._detail = f"load {self._memory_address:#010x}"
+                    self._detail = (
+                        f"load {self._memory_address:#010x}; "
+                        f"{self._memory_access_detail}; {self._memory_latency} cycles"
+                    )
                 else:
                     if not self._memory_cached:
                         self.memory.write(
@@ -350,7 +360,10 @@ class CPU:
                         )
                     self.pc = self._next_pc if self._next_pc is not None else self.pc
                     self.stage = Stage.FETCH
-                    self._detail = f"store {self._memory_address:#010x}"
+                    self._detail = (
+                        f"store {self._memory_address:#010x}; "
+                        f"{self._memory_access_detail}; {self._memory_latency} cycles"
+                    )
                     self._clear_pipeline()
 
         elif self.stage is Stage.WRITEBACK:
@@ -362,18 +375,21 @@ class CPU:
             self._detail = f"writeback {instr.opcode.mnemonic}"
             self._clear_pipeline()
 
+        if self._instruction is not None:
+            instruction_name = self._instruction.opcode.mnemonic
+
         entry = TraceEntry(
             cycle=self.cycle,
-            stage=self.stage.name,
-            pc=self.pc,
+            stage=executed_stage.name,
+            pc=instruction_pc,
             instruction_pc=instruction_pc,
-            instruction=instruction_name
-            or (self._instruction.opcode.mnemonic if self._instruction else ""),
+            instruction=instruction_name,
             registers=tuple(self.registers),
             in_interrupt=trace_in_interrupt,
             detail=self._detail,
         )
-        self.trace.append(entry)
+        if not suppress_trace_entry:
+            self.trace.append(entry)
         return entry
 
     def _require_instruction(self) -> Instruction:
@@ -432,12 +448,12 @@ class CPU:
                 access = self.cache.read(self._memory_address, self._memory_size)
                 self._result = access.value
                 self._memory_wait = access.latency
-                self._detail = (
-                    f"cache {'hit' if access.hit else 'miss'} load "
-                    f"{self._memory_address:#010x}"
-                )
+                self._memory_latency = access.latency
+                self._memory_access_detail = f"cache {'hit' if access.hit else 'miss'}"
             else:
                 self._memory_wait = 1
+                self._memory_latency = 1
+                self._memory_access_detail = "MMIO"
             self.stage = Stage.MEMORY
             self._detail = f"load request {self._memory_address:#010x}"
             return
@@ -453,12 +469,12 @@ class CPU:
                     self._memory_address, self._memory_value, self._memory_size
                 )
                 self._memory_wait = access.latency
-                self._detail = (
-                    f"cache {'hit' if access.hit else 'miss'} store "
-                    f"{self._memory_address:#010x}"
-                )
+                self._memory_latency = access.latency
+                self._memory_access_detail = f"cache {'hit' if access.hit else 'miss'}"
             else:
                 self._memory_wait = 1
+                self._memory_latency = 1
+                self._memory_access_detail = "MMIO"
             self.stage = Stage.MEMORY
             self._detail = f"store request {self._memory_address:#010x}"
             return

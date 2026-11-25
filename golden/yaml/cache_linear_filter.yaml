@@ -25,251 +25,927 @@ out_sections:
       00
   bss: []
 out_stdout: ''
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  8      0x00000010   movi                R2=0x00000008
+  2      0x0000000C   DECODE      movi                -
 
-  12     0x00000014   movi                -
+  3      0x0000000C   EXECUTE     movi                -
 
-  15     0x00000018   bge                 -
+  4      0x0000000C   WRITEBACK   movi                R1=0x00002000
 
-  19     0x0000001C   add                 -
+  5      0x00000010   FETCH       -                   -
 
-  23     0x00000020   add                 -
+  6      0x00000010   DECODE      movi                -
 
-  27     0x00000024   add                 R4=0x00002000
+  7      0x00000010   EXECUTE     movi                -
 
-  41     0x00000028   load                R5=0x00000001
+  8      0x00000010   WRITEBACK   movi                R2=0x00000008
 
-  45     0x0000002C   addi                R3=0x00000001
+  9      0x00000014   FETCH       -                   -
 
-  48     0x00000030   jmp                 -
+  10     0x00000014   DECODE      movi                -
 
-  51     0x00000018   bge                 -
+  11     0x00000014   EXECUTE     movi                -
 
-  55     0x0000001C   add                 R4=0x00000002
+  12     0x00000014   WRITEBACK   movi                -
 
-  59     0x00000020   add                 R4=0x00000004
+  13     0x00000018   FETCH       -                   -
 
-  63     0x00000024   add                 R4=0x00002004
+  14     0x00000018   DECODE      bge                 -
 
-  68     0x00000028   load                R5=0x00000002
+  15     0x00000018   EXECUTE     bge                 -
 
-  72     0x0000002C   addi                R3=0x00000002
+  16     0x0000001C   FETCH       -                   -
 
-  75     0x00000030   jmp                 -
+  17     0x0000001C   DECODE      add                 -
 
-  78     0x00000018   bge                 -
+  18     0x0000001C   EXECUTE     add                 -
 
-  82     0x0000001C   add                 R4=0x00000004
+  19     0x0000001C   WRITEBACK   add                 -
 
-  86     0x00000020   add                 R4=0x00000008
+  20     0x00000020   FETCH       -                   -
 
-  90     0x00000024   add                 R4=0x00002008
+  21     0x00000020   DECODE      add                 -
 
-  95     0x00000028   load                R5=0x00000003
+  22     0x00000020   EXECUTE     add                 -
 
-  99     0x0000002C   addi                R3=0x00000003
+  23     0x00000020   WRITEBACK   add                 -
 
-  102    0x00000030   jmp                 -
+  24     0x00000024   FETCH       -                   -
 
-  105    0x00000018   bge                 -
+  25     0x00000024   DECODE      add                 -
 
-  109    0x0000001C   add                 R4=0x00000006
+  26     0x00000024   EXECUTE     add                 -
 
-  113    0x00000020   add                 R4=0x0000000C
+  27     0x00000024   WRITEBACK   add                 R4=0x00002000
 
-  117    0x00000024   add                 R4=0x0000200C
+  28     0x00000028   FETCH       -                   -
 
-  122    0x00000028   load                R5=0x00000004
+  29     0x00000028   DECODE      load                -
 
-  126    0x0000002C   addi                R3=0x00000004
+  30     0x00000028   EXECUTE     load                -
 
-  129    0x00000030   jmp                 -
+  40     0x00000028   MEMORY      load                -
 
-  132    0x00000018   bge                 -
+  41     0x00000028   WRITEBACK   load                R5=0x00000001
 
-  136    0x0000001C   add                 R4=0x00000008
+  42     0x0000002C   FETCH       -                   -
 
-  140    0x00000020   add                 R4=0x00000010
+  43     0x0000002C   DECODE      addi                -
 
-  144    0x00000024   add                 R4=0x00002010
+  44     0x0000002C   EXECUTE     addi                -
 
-  158    0x00000028   load                R5=0x00000005
+  45     0x0000002C   WRITEBACK   addi                R3=0x00000001
 
-  162    0x0000002C   addi                R3=0x00000005
+  46     0x00000030   FETCH       -                   -
 
-  165    0x00000030   jmp                 -
+  47     0x00000030   DECODE      jmp                 -
 
-  168    0x00000018   bge                 -
+  48     0x00000030   EXECUTE     jmp                 -
 
-  172    0x0000001C   add                 R4=0x0000000A
+  49     0x00000018   FETCH       -                   -
 
-  176    0x00000020   add                 R4=0x00000014
+  50     0x00000018   DECODE      bge                 -
 
-  180    0x00000024   add                 R4=0x00002014
+  51     0x00000018   EXECUTE     bge                 -
 
-  185    0x00000028   load                R5=0x00000006
+  52     0x0000001C   FETCH       -                   -
 
-  189    0x0000002C   addi                R3=0x00000006
+  53     0x0000001C   DECODE      add                 -
 
-  192    0x00000030   jmp                 -
+  54     0x0000001C   EXECUTE     add                 -
 
-  195    0x00000018   bge                 -
+  55     0x0000001C   WRITEBACK   add                 R4=0x00000002
 
-  199    0x0000001C   add                 R4=0x0000000C
+  56     0x00000020   FETCH       -                   -
 
-  203    0x00000020   add                 R4=0x00000018
+  57     0x00000020   DECODE      add                 -
 
-  207    0x00000024   add                 R4=0x00002018
+  58     0x00000020   EXECUTE     add                 -
 
-  212    0x00000028   load                R5=0x00000007
+  59     0x00000020   WRITEBACK   add                 R4=0x00000004
 
-  216    0x0000002C   addi                R3=0x00000007
+  60     0x00000024   FETCH       -                   -
 
-  219    0x00000030   jmp                 -
+  61     0x00000024   DECODE      add                 -
 
-  222    0x00000018   bge                 -
+  62     0x00000024   EXECUTE     add                 -
 
-  226    0x0000001C   add                 R4=0x0000000E
+  63     0x00000024   WRITEBACK   add                 R4=0x00002004
 
-  230    0x00000020   add                 R4=0x0000001C
+  64     0x00000028   FETCH       -                   -
 
-  234    0x00000024   add                 R4=0x0000201C
+  65     0x00000028   DECODE      load                -
 
-  239    0x00000028   load                R5=0x00000008
+  66     0x00000028   EXECUTE     load                -
 
-  243    0x0000002C   addi                R3=0x00000008
+  67     0x00000028   MEMORY      load                -
 
-  246    0x00000030   jmp                 -
+  68     0x00000028   WRITEBACK   load                R5=0x00000002
 
-  249    0x00000018   bge                 -
+  69     0x0000002C   FETCH       -                   -
 
-  253    0x00000034   movi                R3=0x00000000
+  70     0x0000002C   DECODE      addi                -
 
-  256    0x00000038   bge                 -
+  71     0x0000002C   EXECUTE     addi                -
 
-  260    0x0000003C   add                 R4=0x00000000
+  72     0x0000002C   WRITEBACK   addi                R3=0x00000002
 
-  264    0x00000040   add                 -
+  73     0x00000030   FETCH       -                   -
 
-  268    0x00000044   add                 R4=0x00002000
+  74     0x00000030   DECODE      jmp                 -
 
-  273    0x00000048   load                R5=0x00000001
+  75     0x00000030   EXECUTE     jmp                 -
 
-  277    0x0000004C   addi                R3=0x00000001
+  76     0x00000018   FETCH       -                   -
 
-  280    0x00000050   jmp                 -
+  77     0x00000018   DECODE      bge                 -
 
-  283    0x00000038   bge                 -
+  78     0x00000018   EXECUTE     bge                 -
 
-  287    0x0000003C   add                 R4=0x00000002
+  79     0x0000001C   FETCH       -                   -
 
-  291    0x00000040   add                 R4=0x00000004
+  80     0x0000001C   DECODE      add                 -
 
-  295    0x00000044   add                 R4=0x00002004
+  81     0x0000001C   EXECUTE     add                 -
 
-  300    0x00000048   load                R5=0x00000002
+  82     0x0000001C   WRITEBACK   add                 R4=0x00000004
 
-  304    0x0000004C   addi                R3=0x00000002
+  83     0x00000020   FETCH       -                   -
 
-  307    0x00000050   jmp                 -
+  84     0x00000020   DECODE      add                 -
 
-  310    0x00000038   bge                 -
+  85     0x00000020   EXECUTE     add                 -
 
-  314    0x0000003C   add                 R4=0x00000004
+  86     0x00000020   WRITEBACK   add                 R4=0x00000008
 
-  318    0x00000040   add                 R4=0x00000008
+  87     0x00000024   FETCH       -                   -
 
-  322    0x00000044   add                 R4=0x00002008
+  88     0x00000024   DECODE      add                 -
 
-  327    0x00000048   load                R5=0x00000003
+  89     0x00000024   EXECUTE     add                 -
 
-  331    0x0000004C   addi                R3=0x00000003
+  90     0x00000024   WRITEBACK   add                 R4=0x00002008
 
-  334    0x00000050   jmp                 -
+  91     0x00000028   FETCH       -                   -
 
-  337    0x00000038   bge                 -
+  92     0x00000028   DECODE      load                -
 
-  341    0x0000003C   add                 R4=0x00000006
+  93     0x00000028   EXECUTE     load                -
 
-  345    0x00000040   add                 R4=0x0000000C
+  94     0x00000028   MEMORY      load                -
 
-  349    0x00000044   add                 R4=0x0000200C
+  95     0x00000028   WRITEBACK   load                R5=0x00000003
 
-  354    0x00000048   load                R5=0x00000004
+  96     0x0000002C   FETCH       -                   -
 
-  358    0x0000004C   addi                R3=0x00000004
+  97     0x0000002C   DECODE      addi                -
 
-  361    0x00000050   jmp                 -
+  98     0x0000002C   EXECUTE     addi                -
 
-  364    0x00000038   bge                 -
+  99     0x0000002C   WRITEBACK   addi                R3=0x00000003
 
-  368    0x0000003C   add                 R4=0x00000008
+  100    0x00000030   FETCH       -                   -
 
-  372    0x00000040   add                 R4=0x00000010
+  101    0x00000030   DECODE      jmp                 -
 
-  376    0x00000044   add                 R4=0x00002010
+  102    0x00000030   EXECUTE     jmp                 -
 
-  381    0x00000048   load                R5=0x00000005
+  103    0x00000018   FETCH       -                   -
 
-  385    0x0000004C   addi                R3=0x00000005
+  104    0x00000018   DECODE      bge                 -
 
-  388    0x00000050   jmp                 -
+  105    0x00000018   EXECUTE     bge                 -
 
-  391    0x00000038   bge                 -
+  106    0x0000001C   FETCH       -                   -
 
-  395    0x0000003C   add                 R4=0x0000000A
+  107    0x0000001C   DECODE      add                 -
 
-  399    0x00000040   add                 R4=0x00000014
+  108    0x0000001C   EXECUTE     add                 -
 
-  403    0x00000044   add                 R4=0x00002014
+  109    0x0000001C   WRITEBACK   add                 R4=0x00000006
 
-  408    0x00000048   load                R5=0x00000006
+  110    0x00000020   FETCH       -                   -
 
-  412    0x0000004C   addi                R3=0x00000006
+  111    0x00000020   DECODE      add                 -
 
-  415    0x00000050   jmp                 -
+  112    0x00000020   EXECUTE     add                 -
 
-  418    0x00000038   bge                 -
+  113    0x00000020   WRITEBACK   add                 R4=0x0000000C
 
-  422    0x0000003C   add                 R4=0x0000000C
+  114    0x00000024   FETCH       -                   -
 
-  426    0x00000040   add                 R4=0x00000018
+  115    0x00000024   DECODE      add                 -
 
-  430    0x00000044   add                 R4=0x00002018
+  116    0x00000024   EXECUTE     add                 -
 
-  435    0x00000048   load                R5=0x00000007
+  117    0x00000024   WRITEBACK   add                 R4=0x0000200C
 
-  439    0x0000004C   addi                R3=0x00000007
+  118    0x00000028   FETCH       -                   -
 
-  442    0x00000050   jmp                 -
+  119    0x00000028   DECODE      load                -
 
-  445    0x00000038   bge                 -
+  120    0x00000028   EXECUTE     load                -
 
-  449    0x0000003C   add                 R4=0x0000000E
+  121    0x00000028   MEMORY      load                -
 
-  453    0x00000040   add                 R4=0x0000001C
+  122    0x00000028   WRITEBACK   load                R5=0x00000004
 
-  457    0x00000044   add                 R4=0x0000201C
+  123    0x0000002C   FETCH       -                   -
 
-  462    0x00000048   load                R5=0x00000008
+  124    0x0000002C   DECODE      addi                -
 
-  466    0x0000004C   addi                R3=0x00000008
+  125    0x0000002C   EXECUTE     addi                -
 
-  469    0x00000050   jmp                 -
+  126    0x0000002C   WRITEBACK   addi                R3=0x00000004
 
-  472    0x00000038   bge                 -
+  127    0x00000030   FETCH       -                   -
 
-  475    0x00000054   halt                -
+  128    0x00000030   DECODE      jmp                 -
 
-  -------------------------------------------------------
+  129    0x00000030   EXECUTE     jmp                 -
 
-  Instructions: 119 | Cycles: 475
+  130    0x00000018   FETCH       -                   -
+
+  131    0x00000018   DECODE      bge                 -
+
+  132    0x00000018   EXECUTE     bge                 -
+
+  133    0x0000001C   FETCH       -                   -
+
+  134    0x0000001C   DECODE      add                 -
+
+  135    0x0000001C   EXECUTE     add                 -
+
+  136    0x0000001C   WRITEBACK   add                 R4=0x00000008
+
+  137    0x00000020   FETCH       -                   -
+
+  138    0x00000020   DECODE      add                 -
+
+  139    0x00000020   EXECUTE     add                 -
+
+  140    0x00000020   WRITEBACK   add                 R4=0x00000010
+
+  141    0x00000024   FETCH       -                   -
+
+  142    0x00000024   DECODE      add                 -
+
+  143    0x00000024   EXECUTE     add                 -
+
+  144    0x00000024   WRITEBACK   add                 R4=0x00002010
+
+  145    0x00000028   FETCH       -                   -
+
+  146    0x00000028   DECODE      load                -
+
+  147    0x00000028   EXECUTE     load                -
+
+  157    0x00000028   MEMORY      load                -
+
+  158    0x00000028   WRITEBACK   load                R5=0x00000005
+
+  159    0x0000002C   FETCH       -                   -
+
+  160    0x0000002C   DECODE      addi                -
+
+  161    0x0000002C   EXECUTE     addi                -
+
+  162    0x0000002C   WRITEBACK   addi                R3=0x00000005
+
+  163    0x00000030   FETCH       -                   -
+
+  164    0x00000030   DECODE      jmp                 -
+
+  165    0x00000030   EXECUTE     jmp                 -
+
+  166    0x00000018   FETCH       -                   -
+
+  167    0x00000018   DECODE      bge                 -
+
+  168    0x00000018   EXECUTE     bge                 -
+
+  169    0x0000001C   FETCH       -                   -
+
+  170    0x0000001C   DECODE      add                 -
+
+  171    0x0000001C   EXECUTE     add                 -
+
+  172    0x0000001C   WRITEBACK   add                 R4=0x0000000A
+
+  173    0x00000020   FETCH       -                   -
+
+  174    0x00000020   DECODE      add                 -
+
+  175    0x00000020   EXECUTE     add                 -
+
+  176    0x00000020   WRITEBACK   add                 R4=0x00000014
+
+  177    0x00000024   FETCH       -                   -
+
+  178    0x00000024   DECODE      add                 -
+
+  179    0x00000024   EXECUTE     add                 -
+
+  180    0x00000024   WRITEBACK   add                 R4=0x00002014
+
+  181    0x00000028   FETCH       -                   -
+
+  182    0x00000028   DECODE      load                -
+
+  183    0x00000028   EXECUTE     load                -
+
+  184    0x00000028   MEMORY      load                -
+
+  185    0x00000028   WRITEBACK   load                R5=0x00000006
+
+  186    0x0000002C   FETCH       -                   -
+
+  187    0x0000002C   DECODE      addi                -
+
+  188    0x0000002C   EXECUTE     addi                -
+
+  189    0x0000002C   WRITEBACK   addi                R3=0x00000006
+
+  190    0x00000030   FETCH       -                   -
+
+  191    0x00000030   DECODE      jmp                 -
+
+  192    0x00000030   EXECUTE     jmp                 -
+
+  193    0x00000018   FETCH       -                   -
+
+  194    0x00000018   DECODE      bge                 -
+
+  195    0x00000018   EXECUTE     bge                 -
+
+  196    0x0000001C   FETCH       -                   -
+
+  197    0x0000001C   DECODE      add                 -
+
+  198    0x0000001C   EXECUTE     add                 -
+
+  199    0x0000001C   WRITEBACK   add                 R4=0x0000000C
+
+  200    0x00000020   FETCH       -                   -
+
+  201    0x00000020   DECODE      add                 -
+
+  202    0x00000020   EXECUTE     add                 -
+
+  203    0x00000020   WRITEBACK   add                 R4=0x00000018
+
+  204    0x00000024   FETCH       -                   -
+
+  205    0x00000024   DECODE      add                 -
+
+  206    0x00000024   EXECUTE     add                 -
+
+  207    0x00000024   WRITEBACK   add                 R4=0x00002018
+
+  208    0x00000028   FETCH       -                   -
+
+  209    0x00000028   DECODE      load                -
+
+  210    0x00000028   EXECUTE     load                -
+
+  211    0x00000028   MEMORY      load                -
+
+  212    0x00000028   WRITEBACK   load                R5=0x00000007
+
+  213    0x0000002C   FETCH       -                   -
+
+  214    0x0000002C   DECODE      addi                -
+
+  215    0x0000002C   EXECUTE     addi                -
+
+  216    0x0000002C   WRITEBACK   addi                R3=0x00000007
+
+  217    0x00000030   FETCH       -                   -
+
+  218    0x00000030   DECODE      jmp                 -
+
+  219    0x00000030   EXECUTE     jmp                 -
+
+  220    0x00000018   FETCH       -                   -
+
+  221    0x00000018   DECODE      bge                 -
+
+  222    0x00000018   EXECUTE     bge                 -
+
+  223    0x0000001C   FETCH       -                   -
+
+  224    0x0000001C   DECODE      add                 -
+
+  225    0x0000001C   EXECUTE     add                 -
+
+  226    0x0000001C   WRITEBACK   add                 R4=0x0000000E
+
+  227    0x00000020   FETCH       -                   -
+
+  228    0x00000020   DECODE      add                 -
+
+  229    0x00000020   EXECUTE     add                 -
+
+  230    0x00000020   WRITEBACK   add                 R4=0x0000001C
+
+  231    0x00000024   FETCH       -                   -
+
+  232    0x00000024   DECODE      add                 -
+
+  233    0x00000024   EXECUTE     add                 -
+
+  234    0x00000024   WRITEBACK   add                 R4=0x0000201C
+
+  235    0x00000028   FETCH       -                   -
+
+  236    0x00000028   DECODE      load                -
+
+  237    0x00000028   EXECUTE     load                -
+
+  238    0x00000028   MEMORY      load                -
+
+  239    0x00000028   WRITEBACK   load                R5=0x00000008
+
+  240    0x0000002C   FETCH       -                   -
+
+  241    0x0000002C   DECODE      addi                -
+
+  242    0x0000002C   EXECUTE     addi                -
+
+  243    0x0000002C   WRITEBACK   addi                R3=0x00000008
+
+  244    0x00000030   FETCH       -                   -
+
+  245    0x00000030   DECODE      jmp                 -
+
+  246    0x00000030   EXECUTE     jmp                 -
+
+  247    0x00000018   FETCH       -                   -
+
+  248    0x00000018   DECODE      bge                 -
+
+  249    0x00000018   EXECUTE     bge                 -
+
+  250    0x00000034   FETCH       -                   -
+
+  251    0x00000034   DECODE      movi                -
+
+  252    0x00000034   EXECUTE     movi                -
+
+  253    0x00000034   WRITEBACK   movi                R3=0x00000000
+
+  254    0x00000038   FETCH       -                   -
+
+  255    0x00000038   DECODE      bge                 -
+
+  256    0x00000038   EXECUTE     bge                 -
+
+  257    0x0000003C   FETCH       -                   -
+
+  258    0x0000003C   DECODE      add                 -
+
+  259    0x0000003C   EXECUTE     add                 -
+
+  260    0x0000003C   WRITEBACK   add                 R4=0x00000000
+
+  261    0x00000040   FETCH       -                   -
+
+  262    0x00000040   DECODE      add                 -
+
+  263    0x00000040   EXECUTE     add                 -
+
+  264    0x00000040   WRITEBACK   add                 -
+
+  265    0x00000044   FETCH       -                   -
+
+  266    0x00000044   DECODE      add                 -
+
+  267    0x00000044   EXECUTE     add                 -
+
+  268    0x00000044   WRITEBACK   add                 R4=0x00002000
+
+  269    0x00000048   FETCH       -                   -
+
+  270    0x00000048   DECODE      load                -
+
+  271    0x00000048   EXECUTE     load                -
+
+  272    0x00000048   MEMORY      load                -
+
+  273    0x00000048   WRITEBACK   load                R5=0x00000001
+
+  274    0x0000004C   FETCH       -                   -
+
+  275    0x0000004C   DECODE      addi                -
+
+  276    0x0000004C   EXECUTE     addi                -
+
+  277    0x0000004C   WRITEBACK   addi                R3=0x00000001
+
+  278    0x00000050   FETCH       -                   -
+
+  279    0x00000050   DECODE      jmp                 -
+
+  280    0x00000050   EXECUTE     jmp                 -
+
+  281    0x00000038   FETCH       -                   -
+
+  282    0x00000038   DECODE      bge                 -
+
+  283    0x00000038   EXECUTE     bge                 -
+
+  284    0x0000003C   FETCH       -                   -
+
+  285    0x0000003C   DECODE      add                 -
+
+  286    0x0000003C   EXECUTE     add                 -
+
+  287    0x0000003C   WRITEBACK   add                 R4=0x00000002
+
+  288    0x00000040   FETCH       -                   -
+
+  289    0x00000040   DECODE      add                 -
+
+  290    0x00000040   EXECUTE     add                 -
+
+  291    0x00000040   WRITEBACK   add                 R4=0x00000004
+
+  292    0x00000044   FETCH       -                   -
+
+  293    0x00000044   DECODE      add                 -
+
+  294    0x00000044   EXECUTE     add                 -
+
+  295    0x00000044   WRITEBACK   add                 R4=0x00002004
+
+  296    0x00000048   FETCH       -                   -
+
+  297    0x00000048   DECODE      load                -
+
+  298    0x00000048   EXECUTE     load                -
+
+  299    0x00000048   MEMORY      load                -
+
+  300    0x00000048   WRITEBACK   load                R5=0x00000002
+
+  301    0x0000004C   FETCH       -                   -
+
+  302    0x0000004C   DECODE      addi                -
+
+  303    0x0000004C   EXECUTE     addi                -
+
+  304    0x0000004C   WRITEBACK   addi                R3=0x00000002
+
+  305    0x00000050   FETCH       -                   -
+
+  306    0x00000050   DECODE      jmp                 -
+
+  307    0x00000050   EXECUTE     jmp                 -
+
+  308    0x00000038   FETCH       -                   -
+
+  309    0x00000038   DECODE      bge                 -
+
+  310    0x00000038   EXECUTE     bge                 -
+
+  311    0x0000003C   FETCH       -                   -
+
+  312    0x0000003C   DECODE      add                 -
+
+  313    0x0000003C   EXECUTE     add                 -
+
+  314    0x0000003C   WRITEBACK   add                 R4=0x00000004
+
+  315    0x00000040   FETCH       -                   -
+
+  316    0x00000040   DECODE      add                 -
+
+  317    0x00000040   EXECUTE     add                 -
+
+  318    0x00000040   WRITEBACK   add                 R4=0x00000008
+
+  319    0x00000044   FETCH       -                   -
+
+  320    0x00000044   DECODE      add                 -
+
+  321    0x00000044   EXECUTE     add                 -
+
+  322    0x00000044   WRITEBACK   add                 R4=0x00002008
+
+  323    0x00000048   FETCH       -                   -
+
+  324    0x00000048   DECODE      load                -
+
+  325    0x00000048   EXECUTE     load                -
+
+  326    0x00000048   MEMORY      load                -
+
+  327    0x00000048   WRITEBACK   load                R5=0x00000003
+
+  328    0x0000004C   FETCH       -                   -
+
+  329    0x0000004C   DECODE      addi                -
+
+  330    0x0000004C   EXECUTE     addi                -
+
+  331    0x0000004C   WRITEBACK   addi                R3=0x00000003
+
+  332    0x00000050   FETCH       -                   -
+
+  333    0x00000050   DECODE      jmp                 -
+
+  334    0x00000050   EXECUTE     jmp                 -
+
+  335    0x00000038   FETCH       -                   -
+
+  336    0x00000038   DECODE      bge                 -
+
+  337    0x00000038   EXECUTE     bge                 -
+
+  338    0x0000003C   FETCH       -                   -
+
+  339    0x0000003C   DECODE      add                 -
+
+  340    0x0000003C   EXECUTE     add                 -
+
+  341    0x0000003C   WRITEBACK   add                 R4=0x00000006
+
+  342    0x00000040   FETCH       -                   -
+
+  343    0x00000040   DECODE      add                 -
+
+  344    0x00000040   EXECUTE     add                 -
+
+  345    0x00000040   WRITEBACK   add                 R4=0x0000000C
+
+  346    0x00000044   FETCH       -                   -
+
+  347    0x00000044   DECODE      add                 -
+
+  348    0x00000044   EXECUTE     add                 -
+
+  349    0x00000044   WRITEBACK   add                 R4=0x0000200C
+
+  350    0x00000048   FETCH       -                   -
+
+  351    0x00000048   DECODE      load                -
+
+  352    0x00000048   EXECUTE     load                -
+
+  353    0x00000048   MEMORY      load                -
+
+  354    0x00000048   WRITEBACK   load                R5=0x00000004
+
+  355    0x0000004C   FETCH       -                   -
+
+  356    0x0000004C   DECODE      addi                -
+
+  357    0x0000004C   EXECUTE     addi                -
+
+  358    0x0000004C   WRITEBACK   addi                R3=0x00000004
+
+  359    0x00000050   FETCH       -                   -
+
+  360    0x00000050   DECODE      jmp                 -
+
+  361    0x00000050   EXECUTE     jmp                 -
+
+  362    0x00000038   FETCH       -                   -
+
+  363    0x00000038   DECODE      bge                 -
+
+  364    0x00000038   EXECUTE     bge                 -
+
+  365    0x0000003C   FETCH       -                   -
+
+  366    0x0000003C   DECODE      add                 -
+
+  367    0x0000003C   EXECUTE     add                 -
+
+  368    0x0000003C   WRITEBACK   add                 R4=0x00000008
+
+  369    0x00000040   FETCH       -                   -
+
+  370    0x00000040   DECODE      add                 -
+
+  371    0x00000040   EXECUTE     add                 -
+
+  372    0x00000040   WRITEBACK   add                 R4=0x00000010
+
+  373    0x00000044   FETCH       -                   -
+
+  374    0x00000044   DECODE      add                 -
+
+  375    0x00000044   EXECUTE     add                 -
+
+  376    0x00000044   WRITEBACK   add                 R4=0x00002010
+
+  377    0x00000048   FETCH       -                   -
+
+  378    0x00000048   DECODE      load                -
+
+  379    0x00000048   EXECUTE     load                -
+
+  380    0x00000048   MEMORY      load                -
+
+  381    0x00000048   WRITEBACK   load                R5=0x00000005
+
+  382    0x0000004C   FETCH       -                   -
+
+  383    0x0000004C   DECODE      addi                -
+
+  384    0x0000004C   EXECUTE     addi                -
+
+  385    0x0000004C   WRITEBACK   addi                R3=0x00000005
+
+  386    0x00000050   FETCH       -                   -
+
+  387    0x00000050   DECODE      jmp                 -
+
+  388    0x00000050   EXECUTE     jmp                 -
+
+  389    0x00000038   FETCH       -                   -
+
+  390    0x00000038   DECODE      bge                 -
+
+  391    0x00000038   EXECUTE     bge                 -
+
+  392    0x0000003C   FETCH       -                   -
+
+  393    0x0000003C   DECODE      add                 -
+
+  394    0x0000003C   EXECUTE     add                 -
+
+  395    0x0000003C   WRITEBACK   add                 R4=0x0000000A
+
+  396    0x00000040   FETCH       -                   -
+
+  397    0x00000040   DECODE      add                 -
+
+  398    0x00000040   EXECUTE     add                 -
+
+  399    0x00000040   WRITEBACK   add                 R4=0x00000014
+
+  400    0x00000044   FETCH       -                   -
+
+  401    0x00000044   DECODE      add                 -
+
+  402    0x00000044   EXECUTE     add                 -
+
+  403    0x00000044   WRITEBACK   add                 R4=0x00002014
+
+  404    0x00000048   FETCH       -                   -
+
+  405    0x00000048   DECODE      load                -
+
+  406    0x00000048   EXECUTE     load                -
+
+  407    0x00000048   MEMORY      load                -
+
+  408    0x00000048   WRITEBACK   load                R5=0x00000006
+
+  409    0x0000004C   FETCH       -                   -
+
+  410    0x0000004C   DECODE      addi                -
+
+  411    0x0000004C   EXECUTE     addi                -
+
+  412    0x0000004C   WRITEBACK   addi                R3=0x00000006
+
+  413    0x00000050   FETCH       -                   -
+
+  414    0x00000050   DECODE      jmp                 -
+
+  415    0x00000050   EXECUTE     jmp                 -
+
+  416    0x00000038   FETCH       -                   -
+
+  417    0x00000038   DECODE      bge                 -
+
+  418    0x00000038   EXECUTE     bge                 -
+
+  419    0x0000003C   FETCH       -                   -
+
+  420    0x0000003C   DECODE      add                 -
+
+  421    0x0000003C   EXECUTE     add                 -
+
+  422    0x0000003C   WRITEBACK   add                 R4=0x0000000C
+
+  423    0x00000040   FETCH       -                   -
+
+  424    0x00000040   DECODE      add                 -
+
+  425    0x00000040   EXECUTE     add                 -
+
+  426    0x00000040   WRITEBACK   add                 R4=0x00000018
+
+  427    0x00000044   FETCH       -                   -
+
+  428    0x00000044   DECODE      add                 -
+
+  429    0x00000044   EXECUTE     add                 -
+
+  430    0x00000044   WRITEBACK   add                 R4=0x00002018
+
+  431    0x00000048   FETCH       -                   -
+
+  432    0x00000048   DECODE      load                -
+
+  433    0x00000048   EXECUTE     load                -
+
+  434    0x00000048   MEMORY      load                -
+
+  435    0x00000048   WRITEBACK   load                R5=0x00000007
+
+  436    0x0000004C   FETCH       -                   -
+
+  437    0x0000004C   DECODE      addi                -
+
+  438    0x0000004C   EXECUTE     addi                -
+
+  439    0x0000004C   WRITEBACK   addi                R3=0x00000007
+
+  440    0x00000050   FETCH       -                   -
+
+  441    0x00000050   DECODE      jmp                 -
+
+  442    0x00000050   EXECUTE     jmp                 -
+
+  443    0x00000038   FETCH       -                   -
+
+  444    0x00000038   DECODE      bge                 -
+
+  445    0x00000038   EXECUTE     bge                 -
+
+  446    0x0000003C   FETCH       -                   -
+
+  447    0x0000003C   DECODE      add                 -
+
+  448    0x0000003C   EXECUTE     add                 -
+
+  449    0x0000003C   WRITEBACK   add                 R4=0x0000000E
+
+  450    0x00000040   FETCH       -                   -
+
+  451    0x00000040   DECODE      add                 -
+
+  452    0x00000040   EXECUTE     add                 -
+
+  453    0x00000040   WRITEBACK   add                 R4=0x0000001C
+
+  454    0x00000044   FETCH       -                   -
+
+  455    0x00000044   DECODE      add                 -
+
+  456    0x00000044   EXECUTE     add                 -
+
+  457    0x00000044   WRITEBACK   add                 R4=0x0000201C
+
+  458    0x00000048   FETCH       -                   -
+
+  459    0x00000048   DECODE      load                -
+
+  460    0x00000048   EXECUTE     load                -
+
+  461    0x00000048   MEMORY      load                -
+
+  462    0x00000048   WRITEBACK   load                R5=0x00000008
+
+  463    0x0000004C   FETCH       -                   -
+
+  464    0x0000004C   DECODE      addi                -
+
+  465    0x0000004C   EXECUTE     addi                -
+
+  466    0x0000004C   WRITEBACK   addi                R3=0x00000008
+
+  467    0x00000050   FETCH       -                   -
+
+  468    0x00000050   DECODE      jmp                 -
+
+  469    0x00000050   EXECUTE     jmp                 -
+
+  470    0x00000038   FETCH       -                   -
+
+  471    0x00000038   DECODE      bge                 -
+
+  472    0x00000038   EXECUTE     bge                 -
+
+  473    0x00000054   FETCH       -                   -
+
+  474    0x00000054   DECODE      halt                -
+
+  475    0x00000054   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 457 | Cycles: 475
 
   '
 out_registers:

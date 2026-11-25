@@ -20,23 +20,49 @@ out_sections:
   data: []
   bss: []
 out_stdout: ''
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  8      0x00000010   call                R15=0x00000014
+  2      0x0000000C   DECODE      movi                -
 
-  12     0x00000018   addi                R2=0x0000002A
+  3      0x0000000C   EXECUTE     movi                -
 
-  15     0x0000001C   ret                 -
+  4      0x0000000C   WRITEBACK   movi                R1=0x00000028
 
-  18     0x00000014   halt                -
+  5      0x00000010   FETCH       -                   -
 
-  -------------------------------------------------------
+  6      0x00000010   DECODE      call                -
 
-  Instructions: 5 | Cycles: 18
+  7      0x00000010   EXECUTE     call                -
+
+  8      0x00000010   WRITEBACK   call                R15=0x00000014
+
+  9      0x00000018   FETCH       -                   -
+
+  10     0x00000018   DECODE      addi                -
+
+  11     0x00000018   EXECUTE     addi                -
+
+  12     0x00000018   WRITEBACK   addi                R2=0x0000002A
+
+  13     0x0000001C   FETCH       -                   -
+
+  14     0x0000001C   DECODE      ret                 -
+
+  15     0x0000001C   EXECUTE     ret                 -
+
+  16     0x00000014   FETCH       -                   -
+
+  17     0x00000014   DECODE      halt                -
+
+  18     0x00000014   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 18 | Cycles: 18
 
   '
 out_registers:

@@ -19,39 +19,115 @@ out_sections:
 out_stdout: '234*+
 
   '
-out_trace: 'CYCLE  PC          INSTRUCTION         REGISTER CHANGES
+out_trace: 'CYCLE  PC          STAGE       INSTRUCTION         REGISTER CHANGES
 
-  -------------------------------------------------------
+  -------------------------------------------------------------------
 
-  4      0x0000000C   movi                -
+  1      0x0000000C   FETCH       -                   -
 
-  8      0x00000010   storeb              -
+  2      0x0000000C   DECODE      movi                -
 
-  12     0x00000014   movi                R2=0x00000033
+  3      0x0000000C   EXECUTE     movi                -
 
-  16     0x00000018   storeb              -
+  4      0x0000000C   WRITEBACK   movi                R2=0x00000032
 
-  20     0x0000001C   movi                R2=0x00000034
+  5      0x00000010   FETCH       -                   -
 
-  24     0x00000020   storeb              -
+  6      0x00000010   DECODE      storeb              -
 
-  28     0x00000024   movi                R2=0x0000002A
+  7      0x00000010   EXECUTE     storeb              -
 
-  32     0x00000028   storeb              -
+  8      0x00000010   MEMORY      storeb              -
 
-  36     0x0000002C   movi                R2=0x0000002B
+  9      0x00000014   FETCH       -                   -
 
-  40     0x00000030   storeb              -
+  10     0x00000014   DECODE      movi                -
 
-  44     0x00000034   movi                R2=0x0000000A
+  11     0x00000014   EXECUTE     movi                -
 
-  48     0x00000038   storeb              -
+  12     0x00000014   WRITEBACK   movi                R2=0x00000033
 
-  51     0x0000003C   halt                -
+  13     0x00000018   FETCH       -                   -
 
-  -------------------------------------------------------
+  14     0x00000018   DECODE      storeb              -
 
-  Instructions: 13 | Cycles: 51
+  15     0x00000018   EXECUTE     storeb              -
+
+  16     0x00000018   MEMORY      storeb              -
+
+  17     0x0000001C   FETCH       -                   -
+
+  18     0x0000001C   DECODE      movi                -
+
+  19     0x0000001C   EXECUTE     movi                -
+
+  20     0x0000001C   WRITEBACK   movi                R2=0x00000034
+
+  21     0x00000020   FETCH       -                   -
+
+  22     0x00000020   DECODE      storeb              -
+
+  23     0x00000020   EXECUTE     storeb              -
+
+  24     0x00000020   MEMORY      storeb              -
+
+  25     0x00000024   FETCH       -                   -
+
+  26     0x00000024   DECODE      movi                -
+
+  27     0x00000024   EXECUTE     movi                -
+
+  28     0x00000024   WRITEBACK   movi                R2=0x0000002A
+
+  29     0x00000028   FETCH       -                   -
+
+  30     0x00000028   DECODE      storeb              -
+
+  31     0x00000028   EXECUTE     storeb              -
+
+  32     0x00000028   MEMORY      storeb              -
+
+  33     0x0000002C   FETCH       -                   -
+
+  34     0x0000002C   DECODE      movi                -
+
+  35     0x0000002C   EXECUTE     movi                -
+
+  36     0x0000002C   WRITEBACK   movi                R2=0x0000002B
+
+  37     0x00000030   FETCH       -                   -
+
+  38     0x00000030   DECODE      storeb              -
+
+  39     0x00000030   EXECUTE     storeb              -
+
+  40     0x00000030   MEMORY      storeb              -
+
+  41     0x00000034   FETCH       -                   -
+
+  42     0x00000034   DECODE      movi                -
+
+  43     0x00000034   EXECUTE     movi                -
+
+  44     0x00000034   WRITEBACK   movi                R2=0x0000000A
+
+  45     0x00000038   FETCH       -                   -
+
+  46     0x00000038   DECODE      storeb              -
+
+  47     0x00000038   EXECUTE     storeb              -
+
+  48     0x00000038   MEMORY      storeb              -
+
+  49     0x0000003C   FETCH       -                   -
+
+  50     0x0000003C   DECODE      halt                -
+
+  51     0x0000003C   EXECUTE     halt                -
+
+  -------------------------------------------------------------------
+
+  Trace entries: 51 | Cycles: 51
 
   '
 out_registers:
